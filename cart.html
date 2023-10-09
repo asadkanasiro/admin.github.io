@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Include your CSS file -->
+</head>
+<body>
+    <header>
+        <h1>Shopping Cart</h1>
+    </header>
+
+    <main>
+        <section class="shopping-cart">
+            <h2>Your Cart</h2>
+            <div class="product-grid" id="cart-items">
+                <!-- Cart items will be added here using JavaScript -->
+            </div>
+            <p>Total: <span id="cart-total">0.00 MAD</span></p>
+        </section>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>&copy; 2023 Lion's Life</p>
+        </div>
+    </footer>
+
+ <script>
+    // Function to retrieve cart data from localStorage
+    function getCartData() {
+        return JSON.parse(localStorage.getItem('cart')) || [];
+    }
+
+    // Function to save cart data to localStorage
+    function saveCartData(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    // Function to display cart items and calculate the total
+    function displayCart() {
+        const cartItems = document.getElementById('cart-items');
+        const cartTotal = document.getElementById('cart-total');
+
+        const cart = getCartData();
+        let total = 0;
+
+        // Clear previous cart items
+        cartItems.innerHTML = '';
+
+        // Add items to the cart
+        cart.forEach((item, index) => {
+            const productCard = document.createElement('div');
+            productCard.classList.add('product-card');
+            productCard.innerHTML = `
+                <img src="${item.imagePath}" alt="${item.name}" width="300" height="300">
+                <h3>${item.name}</h3>
+                <p class="price">${item.price.toFixed(2)} MAD</p>
+                <button onclick="removeFromCart(${index})">Remove</button>
+            `;
+            cartItems.appendChild(productCard);
+            total += item.price;
+        });
+
+        // Update the total
+        cartTotal.textContent = total.toFixed(2) + ' MAD';
+    }
+
+    // Function to remove an item from the cart
+    function removeFromCart(index) {
+        const cart = getCartData();
+        const removedItem = cart.splice(index, 1)[0]; // Remove the item at the specified index
+        saveCartData(cart); // Save the updated cart data to localStorage
+        displayCart(); // Refresh the cart display
+    }
+
+    // Function to add an item to the cart
+    
+
+    function addToCart(name, price, imagePath) {
+        const cart = getCartData();
+        const item = {
+            
+            
+            
+            
+            
+            
+            
+            name: name,
+            price: 65.00,
+            imagePath: images/women-product3.jpg
+        };
+        cart.push(item);
+        saveCartData(cart);
+        displayCart();
+    }
+
+    // Call the displayCart function when the page loads
+    displayCart();
+</script>
+
+</body>
+</html>

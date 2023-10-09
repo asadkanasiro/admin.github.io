@@ -1,0 +1,830 @@
+/* Define reusable variables */
+:root {
+    --primary-color: #ff5733;
+    --secondary-color: #333;
+    --font-size-small: 14px;
+}
+
+/* Cart Link Styles */
+/*.cart-link {
+    text-decoration: none;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    transition: color 0.2s ease-in-out;
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 10px 20px;
+}
+
+.cart-link:hover {
+    color: var(--primary-color);
+    background-color: var(--secondary-color);
+    border-color: var(--primary-color);
+}
+*/
+/* Cart Icon Styles */
+.cart-icon {
+    position: fixed;
+    margin-left: +136px;
+    margin-top: -14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background-color: var(--primary-color);
+    border-radius: 100%;
+}
+
+.cart-icon-image {
+    width: 32px;
+    height: 32px;
+    border-radius: 100%;
+}
+
+/* Cart Count Styles */
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--primary-color);
+    color: #fff;
+    border-radius: 20px 2px;
+    padding: 2px 2px;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Cart Text Styles */
+/*.cart-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-label {
+    font-size: var(--font-size-small);
+}
+
+.cart-arrow-icon {
+    font-size: 18px;
+    margin-top: -5px;
+}
+*/
+/* Hover Effects */
+.cart-link:hover .cart-icon {
+    background-color: var(--secondary-color);
+}
+
+.cart-link:hover .cart-icon-image {
+    filter: invert(1); /* Invert icon color on hover */
+}
+
+.cart-link:hover .cart-count {
+    background-color: var(--secondary-color);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.sidebar {
+    position: fixed;
+    left: -250px; /* Start off-screen */
+    top: -3px;
+    width: 250px;
+    height: 800px;
+    background-color: #0000004d;
+    transition: left 0.3s ease; /* Add transition effect */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Add these styles to your existing CSS or create a new CSS file */
+
+/* Styles for the sidebar */
+/*.sidebar {
+    /* ... Your existing styles ... */
+    /*transform: translateX(-100px); /* Initially hide the sidebar */
+    /*background-color: #eae9ee;
+    color: #000;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+}*/
+
+
+
+.show-sidebar .sidebar {
+    transform: translateX(-100); /* Show the sidebar when the "show-sidebar" class is applied */
+}
+
+
+
+
+
+
+
+.sidebar h3 {
+    font-size: 32px;
+     
+    margin-top: 70px;   
+    background-color: #33333300;
+    color: #00ff11;
+    padding: 2px 5px;
+}
+
+/* Style for theme switch container */
+.theme-switch {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    background-color: #0000;
+}
+
+.theme-switch label {
+    font-size: 18px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Dark Theme Styles */
+.dark-theme {
+    background-color: #1b1b1bb9;
+    color: #00ff11;
+    
+}
+
+/* Light Theme Styles */
+.light-theme {
+    background-color: #fff;
+    color: #333;
+}
+
+
+
+
+
+
+
+
+
+/* Styles for the sidebar header */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: cente
+}
+
+/* Style for the toggle button */
+.toggle-button {
+    background-color: black;
+    border: solid;
+    font-size: 20px;
+    cursor: pointer;
+    color: #fff;
+    height: 40px;
+    padding: 10px;
+    margin-left: 140px;
+}
+
+/* Rest of your existing styles */
+
+
+
+
+
+
+
+/* Modify your existing styles and add these styles */
+
+/* Rest of your existing styles */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* CSS to hide the filter options by default */
+.filter-options {
+    display: none;
+}
+
+/* CSS to show the filter options when not hidden */
+.filter-options:not(.hidden) {
+    display: block;
+}
+
+
+
+
+
+
+/* Hide the default radio buttons */
+input[type="radio"] {
+    display: none;
+  }
+  
+  /* Style the labels as buttons */
+  label {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 4px;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+  
+  /* Style the labels for checked radio buttons */
+  input[type="radio"]:checked + label {
+    background-color: #3498db;
+    color: #fff;
+    border-color: #3498db;
+  }
+  
+  /* Add a hover effect */
+  label:hover {
+    background-color: #3498db;
+    color: #fff;
+    border-color: #3498db;
+  }
+  
+  /* Additional styles for specific labels */
+  label.h-l {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+  }
+  
+  label.l-h {
+    background-color: #27ae60;
+    border-color: #27ae60;
+  }
+  
+  label.new {
+    background-color: #f39c12;
+    border-color: #f39c12;
+  }
+  
+  label.b-s {
+    background-color: #9b59b6;
+    border-color: #9b59b6;
+  }
+  
+  label.ft {
+    background-color: #34495e;
+    border-color: #34495e;
+  }
+  
+  /* Add a style for active filters */
+  label.active-filter {
+    background-color: #e74c3c;
+    color: #fff;
+    border-color: #e74c3c;
+  }
+  
+  /* Add a class for font-size if needed */
+  .label-large {
+    font-size: 14px;
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Hide the default checkbox */
+.toggle-switch {
+    display: none;
+  }
+  
+  /* Style the toggle switch */
+  .toggle-slider {
+    width: 60px;
+    height: 30px;
+    background-color: #08691a;
+    border-radius: 15px;
+    position: relative;
+    cursor: pointer;
+  }
+  
+  /* Style the slider knob */
+  .toggle-slider::before {
+    content: "";
+    width: 28px;
+    height: 28px;
+    background-color: rgb(255, 255, 255);
+    border-radius: 50%;
+    position: absolute;
+    top: 1px;
+    left: 31px;
+    transition: 0.2s;
+  }
+  
+  /* Style the label text */
+  .toggle-label {
+    margin-left: 10px;
+    font-size: 16px;
+    cursor: pointer; /* Add cursor pointer to make label clickable */
+  }
+  
+  /* When the toggle switch is checked, move the slider to the right */
+  .toggle-switch:checked + .toggle-slider::before {
+    transform: translateX(-30px);
+  }
+  
+  /* Change the background color of the slider when checked */
+  .toggle-switch:checked + .toggle-slider {
+    background-color: #bfeabf;
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+/* Reset some default browser styles */
+body, h1, h2, h3, p, ul, li, button, input {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: none;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f4f4;
+    line-height: 1.6;
+}
+
+.header-container {
+   /* display: flex;*/
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    
+}
+
+header {
+    /*background-color: #333;*/
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.logo {
+
+
+    background-color: #333;
+    /*padding: 10px 20px 20px 20px;*/
+    width: 390px;
+    height: 44px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    position: fixed;
+    top: 0;
+   /* left: 50%;
+    /*transform: translateX(-50%);*/
+    
+    
+    
+    
+    
+    
+    
+    /* Define the initial state of the logo */
+
+    /* Your initial styles here */
+    /*transition: transform 0s ease-in-out;*/
+}
+
+/* Define the animation keyframes */
+/*@keyframes slideUp {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+/* Apply the animation when the element has a class of "scroll-up" */
+/*.logo.scroll-up {
+    animation: slideUp 0.5s ease-in-out forwards;
+}*/
+    
+    
+    
+    
+    
+    
+.sidebar,
+.cart-icon,
+.logo {
+    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1), opacity 0.6s ease-in-out, box-shadow 0.6s ease-in-out;
+    transform-origin: center top;
+    opacity: 1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Define the class to hide elements */
+.hide-elements {
+    transform: translateY(-100%) scale(0.8);
+    opacity: 0;
+    box-shadow: none;
+    transition-delay: 0.2s;
+}
+
+/* Add a smooth scale and fade-out effect for the cart icon */
+.hide-elements .cart-icon {
+    transform: translateY(-100%) scale(0.6);
+}
+
+/* Add a subtle rotation and fade-out effect for the logo */
+.hide-elements .logo {
+    transform: translateY(-100%) rotate(0) scale(0.9);
+    opacity: 0.7;
+}
+
+/* Add a fade-in effect with opacity animation for the logo */
+.logo:hover {
+    animation: fadeIn 0.5s ease-in-out forwards;
+    transform: translateY(0) rotate(0) scale(1);
+    opacity: 1;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+nav ul {
+    display: flex;
+}
+
+nav ul li {
+    margin-right: 20px;
+}
+
+nav ul li:last-child {
+    margin-right: 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Add styles for the selected category link */
+.category-filter ul li a.selected {
+    color: #f60; /* Change the text color for the selected category */
+    font-weight: bold; /* Add bold font weight for the selected category */
+}
+
+main {
+    padding: 20px;
+}
+
+.category-filter {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.category-filter h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.category-filter ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.category-filter ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+.category-filter ul li:last-child {
+    margin-right: 0;
+}
+
+.category-filter ul li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.category-filter ul li a:hover {
+    color: #f60;
+}
+
+/* Add styles for the search container */
+.search-container {
+    margin-top: 10px;
+    text-align: center;
+    
+}
+
+/* Style for the search input */
+.s-i {
+
+
+    
+    
+    /* Add padding to the input for spacing */
+    padding: 10px;
+    
+    /* Add a border with rounded corners */
+    border: 2px solid #ccc;
+    border-radius: 5px;
+
+    /* Add a box shadow for depth */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /* Add a background color */
+    background-color: #fff;
+
+    /* Adjust the width and font size */
+    width: 250px;
+    font-size: 16px;
+    
+
+    /* Style the placeholder text */
+    ::placeholder {
+        color: #999;
+    }
+
+    /* Style on focus (when the input is clicked) */
+    :focus {
+        border-color: #007bff; /* Change the border color on focus */
+        outline: none; /* Remove the default focus outline */
+    }
+}
+
+
+
+.search-container input[type="text"] {
+    padding: 10px;
+    width: 70%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.search-container button {
+    padding: 10px 20px;
+    background-color: #f60;
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-container button:hover {
+    background-color: #e44;
+}
+
+.featured-products {
+    text-align: center;
+}
+
+.featured-products h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.product-card img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.product-card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.product-card .price {
+    font-size: 16px;
+    color: #f60;
+    margin-bottom: 10px;
+}
+
+.product-card button {
+    background-color: #f60;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.product-card button:hover {
+    background-color: #e44;
+}
+
+.shopping-cart {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+}
+
+.shopping-cart h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#cart-items {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#cart-items li {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+#cart-total {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f60;
+}
