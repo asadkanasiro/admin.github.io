@@ -1,6 +1,8 @@
 // Import necessary Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { 
+  getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, addDoc, deleteDoc 
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 // Firebase configuration (same as public site)
@@ -20,10 +22,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Define admin email (this could be replaced with a more robust role-check)
+// Define admin email (for simplicity; consider custom claims for production)
 const adminEmail = "admin@zindagiperfumes.com";
 
-// --- Navigation between sections ---
+// Utility: Show loader
+function showLoader() {
+  document.getElementById("loader").style.display = "block";
+}
+function hideLoader() {
+  document.getElementById("loader").style.display = "none";
+}
+
+// --- Sidebar Navigation ---
 const navLinks = document.querySelectorAll('.sidebar nav ul li a');
 const sections = document.querySelectorAll('.section');
 
@@ -31,10 +41,8 @@ navLinks.forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     const sectionId = link.getAttribute('data-section');
-    // Remove active classes
     navLinks.forEach(n => n.classList.remove('active'));
     sections.forEach(sec => sec.classList.remove('active'));
-    // Set active for current
     link.classList.add('active');
     document.getElementById(sectionId).classList.add('active');
   });
@@ -43,7 +51,6 @@ navLinks.forEach(link => {
 // --- Authentication Check ---
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    // Not logged in: redirect to public page
     window.location.href = "index.html";
   } else {
     if (user.email !== adminEmail) {
@@ -52,7 +59,8 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "index.html";
       });
     } else {
-      // If user is admin, load admin data
+      // Load dashboard stats and data
+      loadDashboardStats();
       loadProducts();
       loadOrders();
       loadContacts();
@@ -61,18 +69,34 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// --- Logout Functionality ---
+// --- Logout ---
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => {
     window.location.href = "index.html";
   });
 });
 
-// --- Load Data Functions ---
+// --- Dashboard Stats ---
+function loadDashboardStats() {
+  // Count products, orders, contacts, subscribers
+  onSnapshot(collection(db, "products"), (snapshot) => {
+    document.getElementById("totalProducts").textContent = snapshot.size;
+  });
+  onSnapshot(collection(db, "orders"), (snapshot) => {
+    document.getElementById("totalOrders").textContent = snapshot.size;
+  });
+  onSnapshot(collection(db, "contacts"), (snapshot) => {
+    document.getElementById("totalContacts").textContent = snapshot.size;
+  });
+  onSnapshot(collection(db, "subscribers"), (snapshot) => {
+    document.getElementById("totalSubscribers").textContent = snapshot.size;
+  });
+}
 
-// Products: Render product list with an Edit button for each.
+// --- Load Products with Edit & Delete ---
 function loadProducts() {
   const productsDiv = document.getElementById("productsList");
+  showLoader();
   onSnapshot(collection(db, "products"), (snapshot) => {
     productsDiv.innerHTML = "";
     snapshot.forEach(docSnap => {
@@ -83,9 +107,11 @@ function loadProducts() {
         <strong>${product.name}</strong> - PKR ${product.price}<br>
         ${product.description || ''}<br>
         <button class="edit-btn" data-id="${product.id}">Edit</button>
+        <button class="delete-btn" data-id="${product.id}">Delete</button>
       `;
       productsDiv.appendChild(productDiv);
     });
+    hideLoader();
     // Attach event listeners for edit buttons
     document.querySelectorAll(".edit-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
@@ -93,10 +119,24 @@ function loadProducts() {
         openEditModal(productId);
       });
     });
+    // Attach event listeners for delete buttons
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const productId = e.target.getAttribute("data-id");
+        if (confirm("Are you sure you want to delete this product?")) {
+          deleteDoc(doc(db, "products", productId))
+            .then(() => alert("Product deleted successfully."))
+            .catch(err => {
+              console.error("Delete error:", err);
+              alert("Failed to delete product.");
+            });
+        }
+      });
+    });
   });
 }
 
-// Orders: Render a simple list of orders.
+// --- Load Orders ---
 function loadOrders() {
   const ordersDiv = document.getElementById("ordersList");
   onSnapshot(collection(db, "orders"), (snapshot) => {
@@ -111,7 +151,7 @@ function loadOrders() {
   });
 }
 
-// Contacts: Render submitted contacts.
+// --- Load Contacts ---
 function loadContacts() {
   const contactsDiv = document.getElementById("contactsList");
   onSnapshot(collection(db, "contacts"), (snapshot) => {
@@ -126,7 +166,7 @@ function loadContacts() {
   });
 }
 
-// Subscribers: Render list of subscriber emails.
+// --- Load Subscribers ---
 function loadSubscribers() {
   const subsDiv = document.getElementById("subscribersList");
   onSnapshot(collection(db, "subscribers"), (snapshot) => {
@@ -141,16 +181,15 @@ function loadSubscribers() {
   });
 }
 
-// --- Edit Product Modal Functionality ---
+// --- Edit Product Modal ---
 const editModal = document.getElementById("editProductModal");
 const closeEditModalBtn = document.getElementById("closeEditModal");
 const editProductForm = document.getElementById("editProductForm");
 
 closeEditModalBtn.addEventListener("click", () => {
-  closeEditModal();
+  closeModal(editModal);
 });
 
-// Opens the modal and populates it with product data.
 function openEditModal(productId) {
   const productRef = doc(db, "products", productId);
   getDoc(productRef)
@@ -161,7 +200,7 @@ function openEditModal(productId) {
         document.getElementById("editProductName").value = product.name;
         document.getElementById("editProductPrice").value = product.price;
         document.getElementById("editProductDesc").value = product.description || "";
-        showModal(editModal);
+        openModal(editModal);
       } else {
         alert("Product not found.");
       }
@@ -172,7 +211,6 @@ function openEditModal(productId) {
     });
 }
 
-// Update product on form submission.
 editProductForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const productId = document.getElementById("editProductId").value;
@@ -185,7 +223,7 @@ editProductForm.addEventListener("submit", (e) => {
   updateDoc(productRef, updatedData)
     .then(() => {
       alert("Product updated successfully!");
-      closeEditModal();
+      closeModal(editModal);
     })
     .catch(err => {
       console.error("Error updating product:", err);
@@ -193,13 +231,45 @@ editProductForm.addEventListener("submit", (e) => {
     });
 });
 
-// Utility functions to show/hide modals.
-function showModal(modal) {
+// --- Add Product Modal ---
+const addModal = document.getElementById("addProductModal");
+const closeAddModalBtn = document.getElementById("closeAddModal");
+const addProductForm = document.getElementById("addProductForm");
+
+closeAddModalBtn.addEventListener("click", () => {
+  closeModal(addModal);
+});
+document.getElementById("addProductBtn").addEventListener("click", () => {
+  addProductForm.reset();
+  openModal(addModal);
+});
+
+addProductForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const newProduct = {
+    name: document.getElementById("addProductName").value,
+    price: parseFloat(document.getElementById("addProductPrice").value),
+    description: document.getElementById("addProductDesc").value,
+    imageUrl: document.getElementById("addProductImage").value
+  };
+  addDoc(collection(db, "products"), newProduct)
+    .then(() => {
+      alert("Product added successfully!");
+      closeModal(addModal);
+    })
+    .catch(err => {
+      console.error("Error adding product:", err);
+      alert("Failed to add product. Please try again.");
+    });
+});
+
+// --- Modal Utility Functions ---
+function openModal(modal) {
   modal.style.display = "flex";
   modal.classList.add("active");
+  modal.focus();
 }
-
-function closeEditModal() {
-  editModal.style.display = "none";
-  editModal.classList.remove("active");
+function closeModal(modal) {
+  modal.style.display = "none";
+  modal.classList.remove("active");
 }
