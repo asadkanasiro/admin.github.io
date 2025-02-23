@@ -5,94 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - Zindagi Perfumes</title>
   <style>
-    /* [Your existing CSS remains unchanged, with minor additions] */
-    .section-loader {
+    /* [Your existing CSS from earlier] */
+    .error-message {
       display: none;
+      color: red;
       text-align: center;
       padding: 1rem;
-      color: #666;
-    }
-    .search-bar {
-      margin-bottom: 1rem;
-    }
-    .search-bar input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-    .toggle-btn {
-      background: #b89b5e;
-      border: none;
-      color: #000;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      margin-left: 1rem;
-    }
-    /* Deletion Confirmation Modal */
-    .confirm-modal .modal-content {
-      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="admin-container">
-    <aside class="sidebar">
-      <!-- [Your existing sidebar HTML] -->
-    </aside>
-    <main class="content">
-      <section id="dashboard" class="section active">
-        <h2>Dashboard</h2>
-        <div class="stats">
-          <div class="stat-item"><span id="totalProducts">0</span> Products</div>
-          <div class="stat-item"><span id="totalOrders">0</span> Orders</div>
-          <div class="stat-item"><span id="totalContacts">0</span> Contacts</div>
-          <div class="stat-item"><span id="totalSubscribers">0</span> Subscribers</div>
-        </div>
-        <div class="section-loader" id="dashboardLoader">Loading...</div>
-      </section>
-      <section id="products" class="section">
-        <div class="section-header">
-          <h2>Products</h2>
-          <button id="addProductBtn">Add New Product</button>
-          <button id="toggleRealtimeProducts" class="toggle-btn">Toggle Real-Time</button>
-        </div>
-        <div class="search-bar">
-          <input type="text" id="productSearch" placeholder="Search products..." />
-        </div>
-        <div id="productsList"></div>
-        <div class="section-loader" id="productsLoader">Loading...</div>
-      </section>
-      <!-- [Other sections remain similar, adding section-loader] -->
-    </main>
+  <div class="admin-container" id="adminContainer" style="display: none;">
+    <!-- [Your existing HTML for sidebar and content] -->
+    <aside class="sidebar">...</aside>
+    <main class="content">...</main>
   </div>
-
-  <!-- Edit Product Modal -->
-  <div id="editProductModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editProductTitle">
-    <!-- [Your existing modal HTML] -->
+  <div id="authMessage" class="error-message">
+    <h2>Please log in as an admin</h2>
+    <p>Redirecting to login page...</p>
   </div>
-
-  <!-- Add Product Modal -->
-  <div id="addProductModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addProductTitle">
-    <!-- [Your existing modal HTML] -->
-  </div>
-
-  <!-- Delete Confirmation Modal -->
-  <div id="deleteConfirmModal" class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
-    <div class="modal-content">
-      <button class="close-btn" id="closeDeleteModal">×</button>
-      <h2 id="deleteConfirmTitle">Confirm Deletion</h2>
-      <p>Are you sure you want to delete "<span id="deleteProductName"></span>"?</p>
-      <button id="confirmDeleteBtn">Yes, Delete</button>
-      <button id="cancelDeleteBtn">Cancel</button>
-    </div>
-  </div>
+  <div id="loader" class="loader">Loading...</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { 
-      getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, addDoc, deleteDoc 
-    } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -106,83 +42,52 @@
       measurementId: "G-B4HP267SJF"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const adminEmail = "admin@zindagiperfumes.com";
-
-    // DOM Elements
-    const modals = {
-      edit: document.getElementById("editProductModal"),
-      add: document.getElementById("addProductModal"),
-      delete: document.getElementById("deleteConfirmModal")
-    };
-    const loaders = {
-      dashboard: document.getElementById("dashboardLoader"),
-      products: document.getElementById("productsLoader")
-    };
-
-    // State
-    let productsRealtime = true;
-    let unsubscribeProducts = null;
-
-    // Utility Functions
-    const showLoader = (loader) => loader.style.display = "block";
-    const hideLoader = (loader) => loader.style.display = "none";
-
-    const openModal = (modal) => {
-      modal.style.display = "flex";
-      modal.classList.add("active");
-      trapFocus(modal); // Accessibility
-    };
-
-    const closeModal = (modal) => {
-      modal.style.display = "none";
-      modal.classList.remove("active");
-      document.querySelector(".content").focus(); // Return focus
-    };
-
-    // Accessibility: Trap focus in modal
-    function trapFocus(modal) {
-      const focusableEls = modal.querySelectorAll('a[href], button, textarea, input, select');
-      const firstEl = focusableEls[0];
-      const lastEl = focusableEls[focusableEls.length - 1];
-      firstEl.focus();
-      modal.addEventListener("keydown", (e) => {
-        if (e.key === "Tab") {
-          if (e.shiftKey && document.activeElement === firstEl) {
-            e.preventDefault();
-            lastEl.focus();
-          } else if (!e.shiftKey && document.activeElement === lastEl) {
-            e.preventDefault();
-            firstEl.focus();
-          }
-        }
-      });
+    // Initialize Firebase
+    let app, db, auth;
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+    } catch (error) {
+      console.error("Firebase init error:", error);
+      document.getElementById("authMessage").innerHTML = "<h2>Database connection failed</h2>";
+      document.getElementById("authMessage").style.display = "block";
     }
 
-    // Sidebar Navigation
-    document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const sectionId = link.getAttribute('data-section');
-        document.querySelectorAll('.sidebar nav ul li a').forEach(n => n.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-        link.classList.add('active');
-        document.getElementById(sectionId).classList.add('active');
-      });
-    });
+    const adminEmail = "admin@zindagiperfumes.com"; // Temporary, replace with custom claims
 
-    // Authentication
+    // DOM Elements
+    const adminContainer = document.getElementById("adminContainer");
+    const authMessage = document.getElementById("authMessage");
+    const loader = document.getElementById("loader");
+
+    // Utility Functions
+    const showLoader = () => loader.style.display = "block";
+    const hideLoader = () => loader.style.display = "none";
+
+    // Authentication Check
     onAuthStateChanged(auth, (user) => {
-      if (!user || user.email !== adminEmail) {
-        if (user) signOut(auth);
-        window.location.href = "public.html";
-        return;
+      showLoader();
+      if (!user) {
+        authMessage.style.display = "block";
+        setTimeout(() => {
+          window.location.href = "public.html"; // Ensure this file exists
+        }, 2000);
+      } else if (user.email !== adminEmail) {
+        authMessage.innerHTML = "<h2>Access denied. Admins only.</h2>";
+        authMessage.style.display = "block";
+        signOut(auth).then(() => {
+          setTimeout(() => window.location.href = "public.html", 2000);
+        });
+      } else {
+        authMessage.style.display = "none";
+        adminContainer.style.display = "flex";
+        initializeAdminDashboard();
       }
-      initializeAdminDashboard();
+      hideLoader();
     });
 
+    // Logout
     document.getElementById("logoutBtn").addEventListener("click", () => {
       signOut(auth).then(() => window.location.href = "public.html");
     });
@@ -190,233 +95,24 @@
     // Initialize Dashboard
     function initializeAdminDashboard() {
       loadDashboardStats();
-      loadProducts();
-      setupModalListeners();
-      setupSearch();
+      // Add other functions (loadProducts, etc.) from previous code
     }
 
-    // Load Dashboard Stats
     async function loadDashboardStats() {
-      showLoader(loaders.dashboard);
+      showLoader();
       try {
         onSnapshot(collection(db, "products"), (snap) => {
           document.getElementById("totalProducts").textContent = snap.size;
         });
-        onSnapshot(collection(db, "orders"), (snap) => {
-          document.getElementById("totalOrders").textContent = snap.size;
-        });
-        onSnapshot(collection(db, "contacts"), (snap) => {
-          document.getElementById("totalContacts").textContent = snap.size;
-        });
-        onSnapshot(collection(db, "subscribers"), (snap) => {
-          document.getElementById("totalSubscribers").textContent = snap.size;
-        });
+        // Add other stats
       } catch (err) {
-        console.error("Error loading stats:", err);
+        console.error("Stats error:", err);
       } finally {
-        hideLoader(loaders.dashboard);
+        hideLoader();
       }
     }
 
-    // Load Products with Filtering
-    function loadProducts(query = "") {
-      const productsDiv = document.getElementById("productsList");
-      showLoader(loaders.products);
-      if (unsubscribeProducts) unsubscribeProducts();
-      unsubscribeProducts = onSnapshot(collection(db, "products"), (snapshot) => {
-        productsDiv.innerHTML = "";
-        let products = [];
-        snapshot.forEach(docSnap => {
-          products.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        const filteredProducts = products.filter(p => 
-          p.name.toLowerCase().includes(query.toLowerCase()) || 
-          p.description?.toLowerCase().includes(query.toLowerCase())
-        );
-        filteredProducts.forEach(product => {
-          const productDiv = document.createElement("div");
-          productDiv.classList.add("product-item");
-          productDiv.innerHTML = `
-            <strong>${product.name}</strong> - PKR ${product.price}<br>
-            ${product.description || ''}<br>
-            <button class="edit-btn" data-id="${product.id}">Edit</button>
-            <button class="delete-btn" data-id="${product.id}">Delete</button>
-          `;
-          productsDiv.appendChild(productDiv);
-        });
-        hideLoader(loaders.products);
-      }, (err) => {
-        console.error("Error loading products:", err);
-        hideLoader(loaders.products);
-      });
-    }
-
-    // Toggle Real-Time Updates
-    document.getElementById("toggleRealtimeProducts").addEventListener("click", () => {
-      productsRealtime = !productsRealtime;
-      if (!productsRealtime && unsubscribeProducts) {
-        unsubscribeProducts();
-        document.getElementById("toggleRealtimeProducts").textContent = "Enable Real-Time";
-      } else {
-        loadProducts(document.getElementById("productSearch").value);
-        document.getElementById("toggleRealtimeProducts").textContent = "Disable Real-Time";
-      }
-    });
-
-    // Search Functionality
-    function setupSearch() {
-      const searchInput = document.getElementById("productSearch");
-      let debounceTimer;
-      searchInput.addEventListener("input", (e) => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          if (productsRealtime) loadProducts(e.target.value);
-        }, 300);
-      });
-    }
-
-    // Modal Listeners
-    function setupModalListeners() {
-      // Edit Modal
-      const editForm = document.getElementById("editProductForm");
-      document.getElementById("closeEditModal").addEventListener("click", () => closeModal(modals.edit));
-      editForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!validateEditForm()) return;
-        const productId = document.getElementById("editProductId").value;
-        const updatedData = {
-          name: document.getElementById("editProductName").value,
-          price: parseFloat(document.getElementById("editProductPrice").value),
-          description: document.getElementById("editProductDesc").value,
-        };
-        try {
-          await updateDoc(doc(db, "products", productId), updatedData);
-          alert("Product updated successfully!");
-          closeModal(modals.edit);
-        } catch (err) {
-          alert("Failed to update product: " + err.message);
-        }
-      });
-
-      // Add Modal
-      const addForm = document.getElementById("addProductForm");
-      document.getElementById("closeAddModal").addEventListener("click", () => closeModal(modals.add));
-      document.getElementById("addProductBtn").addEventListener("click", () => {
-        addForm.reset();
-        openModal(modals.add);
-      });
-      addForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!validateAddForm()) return;
-        const newProduct = {
-          name: document.getElementById("addProductName").value,
-          price: parseFloat(document.getElementById("addProductPrice").value),
-          description: document.getElementById("addProductDesc").value,
-          imageUrl: document.getElementById("addProductImage").value
-        };
-        try {
-          await addDoc(collection(db, "products"), newProduct);
-          alert("Product added successfully!");
-          closeModal(modals.add);
-        } catch (err) {
-          alert("Failed to add product: " + err.message);
-        }
-      });
-
-      // Delete Modal
-      let productToDelete = null;
-      document.getElementById("closeDeleteModal").addEventListener("click", () => closeModal(modals.delete));
-      document.getElementById("cancelDeleteBtn").addEventListener("click", () => closeModal(modals.delete));
-      document.getElementById("confirmDeleteBtn").addEventListener("click", async () => {
-        if (productToDelete) {
-          try {
-            await deleteDoc(doc(db, "products", productToDelete));
-            alert("Product deleted successfully!");
-            closeModal(modals.delete);
-          } catch (err) {
-            alert("Failed to delete product: " + err.message);
-          }
-        }
-      });
-
-      // Product List Event Delegation
-      document.getElementById("productsList").addEventListener("click", (e) => {
-        const target = e.target;
-        if (target.classList.contains("edit-btn")) {
-          openEditModal(target.getAttribute("data-id"));
-        } else if (target.classList.contains("delete-btn")) {
-          productToDelete = target.getAttribute("data-id");
-          openDeleteModal(productToDelete);
-        }
-      });
-    }
-
-    // Form Validation
-    function validateEditForm() {
-      const price = parseFloat(document.getElementById("editProductPrice").value);
-      if (price <= 0) {
-        alert("Price must be greater than 0.");
-        return false;
-      }
-      return true;
-    }
-
-    function validateAddForm() {
-      const price = parseFloat(document.getElementById("addProductPrice").value);
-      const imageUrl = document.getElementById("addProductImage").value;
-      if (price <= 0) {
-        alert("Price must be greater than 0.");
-        return false;
-      }
-      if (!isValidUrl(imageUrl)) {
-        alert("Please enter a valid image URL.");
-        return false;
-      }
-      return true;
-    }
-
-    function isValidUrl(url) {
-      try {
-        new URL(url);
-        return /\.(jpg|jpeg|png|gif)$/i.test(url);
-      } catch {
-        return false;
-      }
-    }
-
-    // Open Edit Modal
-    async function openEditModal(productId) {
-      try {
-        const productRef = doc(db, "products", productId);
-        const docSnap = await getDoc(productRef);
-        if (docSnap.exists()) {
-          const product = docSnap.data();
-          document.getElementById("editProductId").value = productId;
-          document.getElementById("editProductName").value = product.name;
-          document.getElementById("editProductPrice").value = product.price;
-          document.getElementById("editProductDesc").value = product.description || "";
-          openModal(modals.edit);
-        } else {
-          alert("Product not found.");
-        }
-      } catch (err) {
-        alert("Failed to load product details: " + err.message);
-      }
-    }
-
-    // Open Delete Confirmation Modal
-    async function openDeleteModal(productId) {
-      try {
-        const productRef = doc(db, "products", productId);
-        const docSnap = await getDoc(productRef);
-        if (docSnap.exists()) {
-          document.getElementById("deleteProductName").textContent = docSnap.data().name;
-          openModal(modals.delete);
-        }
-      } catch (err) {
-        alert("Failed to load product for deletion: " + err.message);
-      }
-    }
+    // [Add your other functions like loadProducts, modal listeners, etc. here]
   </script>
 </body>
 </html>
