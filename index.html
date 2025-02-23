@@ -5,39 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - Zindagi Perfumes</title>
   <style>
-    /* [Your existing CSS] */
-    .login-container, .admin-container {
-      display: none;
-    }
-    .login-container.active, .admin-container.active {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-    }
-    .login-container input {
-      width: 100%;
-      max-width: 300px;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-    .login-container button {
-      background: #b89b5e;
-      border: none;
-      color: #000;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-    }
-    .error-message {
-      color: red;
-      margin-top: 1rem;
-    }
+    body { font-family: Arial, sans-serif; }
+    .login-container, .admin-container { display: none; }
+    .login-container.active, .admin-container.active { display: flex; flex-direction: column; align-items: center; padding: 2rem; }
+    .login-container input { width: 100%; max-width: 300px; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 3px; }
+    .login-container button, .sidebar footer button { background: #b89b5e; border: none; color: #000; padding: 0.5rem 1rem; cursor: pointer; }
+    .error-message { color: red; margin-top: 1rem; }
+    .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fff; padding: 1rem 2rem; border-radius: 5px; display: none; }
+    .sidebar { width: 240px; background: #1c2526; color: #fff; display: flex; flex-direction: column; }
+    .sidebar header { padding: 1rem; text-align: center; border-bottom: 1px solid #444; }
+    .sidebar nav ul { list-style: none; }
+    .sidebar nav ul li a { display: block; padding: 1rem; color: #ccc; text-decoration: none; }
+    .sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: #b89b5e; color: #fff; }
+    .sidebar footer { padding: 1rem; text-align: center; border-top: 1px solid #444; }
+    .content { flex: 1; padding: 2rem; background: #f4f4f4; }
+    .section { display: none; background: #fff; padding: 1rem; border: 1px solid #ccc; border-radius: 5px; }
+    .section.active { display: block; }
+    .stats { display: flex; gap: 1rem; margin-top: 1rem; }
+    .stat-item { background: #e2e2e2; padding: 1rem; border-radius: 5px; flex: 1; text-align: center; font-size: 1.2rem; }
   </style>
 </head>
 <body>
-  <!-- Login Form -->
   <div class="login-container" id="loginContainer">
     <h2>Admin Login</h2>
     <input type="email" id="email" placeholder="Email" />
@@ -46,7 +34,6 @@
     <div id="loginError" class="error-message"></div>
   </div>
 
-  <!-- Admin Dashboard -->
   <div class="admin-container" id="adminContainer">
     <aside class="sidebar">
       <header><h2>Admin Panel</h2></header>
@@ -54,7 +41,6 @@
         <ul>
           <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
           <li><a href="#" data-section="products">Products</a></li>
-          <!-- [Other nav items] -->
         </ul>
       </nav>
       <footer><button id="logoutBtn">Logout</button></footer>
@@ -64,10 +50,13 @@
         <h2>Dashboard</h2>
         <div class="stats">
           <div class="stat-item"><span id="totalProducts">0</span> Products</div>
-          <!-- [Other stats] -->
+          <div class="stat-item"><span id="totalOrders">0</span> Orders</div>
         </div>
       </section>
-      <!-- [Other sections] -->
+      <section id="products" class="section">
+        <h2>Products</h2>
+        <div id="productsList"></div>
+      </section>
     </main>
   </div>
 
@@ -82,12 +71,23 @@
       apiKey: "AIzaSyC-sMxHYSiwld_U5GO7oGtHPw5CaVY_16s",
       authDomain: "zindagi-334b7.firebaseapp.com",
       projectId: "zindagi-334b7",
-      // [Your full config]
+      storageBucket: "zindagi-334b7.firebasestorage.app",
+      messagingSenderId: "936307521870",
+      appId: "1:936307521870:web:619c050d865cff2ac9861f",
+      measurementId: "G-B4HP267SJF"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    // Initialize Firebase
+    let app, db, auth;
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+      console.log("Firebase initialized successfully");
+    } catch (error) {
+      console.error("Firebase init error:", error);
+      document.getElementById("loginError").textContent = "Failed to connect to database.";
+    }
 
     // DOM Elements
     const loginContainer = document.getElementById("loginContainer");
@@ -98,26 +98,30 @@
     const loader = document.getElementById("loader");
 
     // Utility Functions
-    const showLoader = () => loader.style.display = "block";
-    const hideLoader = () => loader.style.display = "none";
+    const showLoader = () => { loader.style.display = "block"; console.log("Showing loader"); };
+    const hideLoader = () => { loader.style.display = "none"; console.log("Hiding loader"); };
     const showLogin = () => {
       loginContainer.classList.add("active");
       adminContainer.classList.remove("active");
+      console.log("Showing login form");
     };
     const showAdmin = () => {
       loginContainer.classList.remove("active");
       adminContainer.classList.add("active");
+      console.log("Showing admin dashboard");
     };
 
     // Authentication State
     onAuthStateChanged(auth, (user) => {
       showLoader();
+      console.log("Auth state changed:", user ? user.email : "No user");
       if (user) {
-        // Temporary email check; replace with custom claims later
+        // Replace with custom claims in production
         if (user.email === "admin@zindagiperfumes.com") {
           showAdmin();
           initializeAdminDashboard();
         } else {
+          console.log("Non-admin user detected, signing out");
           signOut(auth);
           showLogin();
           loginError.textContent = "Access denied. Admins only.";
@@ -133,11 +137,14 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       showLoader();
+      console.log("Login attempt with email:", email);
       signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
+        .then((userCredential) => {
+          console.log("Login successful:", userCredential.user.email);
           loginError.textContent = "";
         })
         .catch(err => {
+          console.error("Login failed:", err.message);
           loginError.textContent = "Login failed: " + err.message;
           hideLoader();
         });
@@ -145,6 +152,7 @@
 
     // Logout
     logoutBtn.addEventListener("click", () => {
+      console.log("Logging out");
       signOut(auth);
     });
 
@@ -157,22 +165,26 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         link.classList.add('active');
         document.getElementById(sectionId).classList.add('active');
+        console.log("Switched to section:", sectionId);
       });
     });
 
     // Initialize Dashboard
     function initializeAdminDashboard() {
+      console.log("Initializing admin dashboard");
       loadDashboardStats();
-      // Add other functions as needed
     }
 
     function loadDashboardStats() {
       showLoader();
+      console.log("Loading dashboard stats");
       onSnapshot(collection(db, "products"), (snap) => {
         document.getElementById("totalProducts").textContent = snap.size;
+        console.log("Products count:", snap.size);
         hideLoader();
       }, (err) => {
-        console.error("Error:", err);
+        console.error("Stats error:", err);
+        loginError.textContent = "Failed to load data: " + err.message;
         hideLoader();
       });
     }
