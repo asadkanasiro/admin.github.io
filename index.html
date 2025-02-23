@@ -201,6 +201,7 @@
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
+    // Replace with your Firebase project configuration
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
@@ -224,6 +225,7 @@
     const content = document.querySelector(".content");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
+    const loginError = document.getElementById("loginError");
     const loader = document.getElementById("loader");
     const notifications = document.getElementById("notifications");
     const addProductBtn = document.getElementById("addProductBtn");
@@ -242,6 +244,8 @@
     const nextOrders = document.getElementById("nextOrders");
     const productsPage = document.getElementById("productsPage");
     const ordersPage = document.getElementById("ordersPage");
+    const exportProductsBtn = document.getElementById("exportProductsBtn");
+    const exportOrdersBtn = document.getElementById("exportOrdersBtn");
 
     // State
     let productsLastDoc = null, ordersLastDoc = null;
@@ -268,39 +272,66 @@
       }, 5000);
     };
 
-    // Authentication & Roles
+    // Authentication State Listener
     onAuthStateChanged(auth, (user) => {
+      console.log("Auth state changed:", user ? "User logged in" : "No user");
       showLoader();
       if (user) {
-        user.getIdTokenResult().then(idTokenResult => {
-          if (idTokenResult.claims.admin) {
-            showAdmin();
-            initializeAdminDashboard(idTokenResult.claims.role || "viewer");
-          } else {
-            signOut(auth);
+        console.log("User email:", user.email);
+        user.getIdTokenResult()
+          .then(idTokenResult => {
+            console.log("Custom claims:", idTokenResult.claims);
+            if (idTokenResult.claims.admin) {
+              console.log("User is admin, showing dashboard");
+              showAdmin();
+              initializeAdminDashboard(idTokenResult.claims.role || "viewer");
+            } else {
+              console.log("User is not admin, signing out");
+              signOut(auth);
+              showLogin();
+              loginError.textContent = "Access denied. Admins only.";
+            }
+          })
+          .catch(err => {
+            console.error("Error fetching token result:", err);
             showLogin();
-            document.getElementById("loginError").textContent = "Access denied. Admins only.";
-          }
-          hideLoader();
-        });
+            loginError.textContent = "Authentication error: " + err.message;
+          })
+          .finally(() => hideLoader());
       } else {
+        console.log("No user, showing login");
         showLogin();
+        loginError.textContent = "";
         hideLoader();
       }
     });
 
+    // Login Handler
     loginBtn.addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) {
+        loginError.textContent = "Please enter both email and password.";
+        return;
+      }
       showLoader();
       signInWithEmailAndPassword(auth, email, password)
-        .catch(err => {
-          document.getElementById("loginError").textContent = "Login failed: " + err.message;
+        .then((userCredential) => {
+          console.log("Sign-in successful:", userCredential.user.email);
+          loginError.textContent = ""; // Clear error on success
+        })
+        .catch((err) => {
+          console.error("Sign-in error:", err);
+          loginError.textContent = `Login failed: ${err.message}`;
           hideLoader();
         });
     });
 
-    logoutBtn.addEventListener("click", () => signOut(auth));
+    logoutBtn.addEventListener("click", () => {
+      console.log("Signing out");
+      signOut(auth);
+    });
+
     menuToggle.addEventListener("click", toggleSidebar);
 
     document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
@@ -316,19 +347,23 @@
 
     // Initialize Dashboard
     function initializeAdminDashboard(role) {
+      console.log("Initializing dashboard for role:", role);
       loadDashboardStats();
       loadProducts();
       loadOrders();
       setupModalListeners(role);
       setupSearchAndSort();
       setupPagination();
+      setupExport();
       setupChart();
     }
 
-    // Dashboard Stats
+    // Dashboard Stats and Chart
     function loadDashboardStats() {
       showLoader();
-      onSnapshot(collection(db, "products"), snap => document.getElementById("totalProducts").textContent = snap.size);
+      onSnapshot(collection(db, "products"), snap => {
+        document.getElementById("totalProducts").textContent = snap.size;
+      });
       onSnapshot(collection(db, "orders"), snap => {
         document.getElementById("totalOrders").textContent = snap.size;
         let totalRevenue = 0;
@@ -336,7 +371,7 @@
         snap.forEach(doc => {
           const order = doc.data();
           totalRevenue += order.amount || 0;
-          revenueData.push({ x: doc.id, y: order.amount });
+          revenueData.push({ x: doc.id, y: order.amount || 0 });
         });
         document.getElementById("totalRevenue").textContent = totalRevenue.toFixed(2);
         updateChart(revenueData);
@@ -394,4 +429,221 @@
       showLoader();
       let q = query(collection(db, "orders"), orderBy(sortBy), limit(perPage));
       if (ordersLastDoc && ordersPageNum > 1) q = query(q, startAfter(ordersLastDoc));
-      if (searchQuery) q = query(q, where("orderId", ">=", searchQu
+      if (searchQuery) q = query(q, where("orderId", ">=", searchQuery), where("orderId", "<=", searchQuery + "\uf8ff"));
+      const snap = await getDocs(q);
+      ordersCards.innerHTML = "";
+      snap.forEach(doc => {
+        const order = { id: doc.id, ...doc.data() };
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h4>Order #${order.orderId || order.id}</h4>
+          <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
+          <p><strong>Amount:</strong> ${order.amount.toFixed(2)} PKR</p>
+          <p><strong>Status:</strong> ${order.status}</p>
+          <div class="actions">
+            <button class="action-btn" data-id="${order.id}" data-status="${order.status}">Update Status</button>
+          </div>
+        `;
+        ordersCards.appendChild(card);
+      });
+      ordersLastDoc = snap.docs[snap.docs.length - 1];
+      ordersPage.textContent = `Page ${ordersPageNum}`;
+      prevOrders.disabled = ordersPageNum === 1;
+      setupCardListeners();
+      hideLoader();
+    }
+
+    // Search and Sort
+    function setupSearchAndSort() {
+      productSearch.addEventListener("input", debounce(() => loadProducts(productSearch.value, productSort.value), 300));
+      orderSearch.addEventListener("input", debounce(() => loadOrders(orderSearch.value, orderSort.value), 300));
+      productSort.addEventListener("change", () => loadProducts(productSearch.value, productSort.value));
+      orderSort.addEventListener("change", () => loadOrders(orderSearch.value, orderSort.value));
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      };
+    }
+
+    // Pagination
+    function setupPagination() {
+      prevProducts.addEventListener("click", () => {
+        if (productsPageNum > 1) {
+          productsPageNum--;
+          productsLastDoc = null; // Reset for simplicity
+          loadProducts(productSearch.value, productSort.value);
+        }
+      });
+      nextProducts.addEventListener("click", () => {
+        productsPageNum++;
+        loadProducts(productSearch.value, productSort.value);
+      });
+      prevOrders.addEventListener("click", () => {
+        if (ordersPageNum > 1) {
+          ordersPageNum--;
+          ordersLastDoc = null;
+          loadOrders(orderSearch.value, orderSort.value);
+        }
+      });
+      nextOrders.addEventListener("click", () => {
+        ordersPageNum++;
+        loadOrders(orderSearch.value, orderSort.value);
+      });
+    }
+
+    // Export Data
+    function setupExport() {
+      exportProductsBtn.addEventListener("click", () => exportData("products", "products.csv"));
+      exportOrdersBtn.addEventListener("click", () => exportData("orders", "orders.csv"));
+    }
+
+    function exportData(collectionName, filename) {
+      showLoader();
+      onSnapshot(collection(db, collectionName), (snap) => {
+        const data = [];
+        snap.forEach(doc => data.push(doc.data()));
+        const csv = convertToCSV(data);
+        downloadCSV(csv, filename);
+        hideLoader();
+      });
+    }
+
+    function convertToCSV(data) {
+      const headers = Object.keys(data[0] || {});
+      const csv = [headers.join(",")];
+      data.forEach(obj => csv.push(headers.map(header => obj[header] || "").join(",")));
+      return csv.join("\n");
+    }
+
+    function downloadCSV(csv, filename) {
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    // Modals and CRUD
+    function setupModalListeners(role) {
+      const isFullAdmin = role === "full-admin";
+      if (!isFullAdmin) {
+        document.querySelectorAll(".edit-btn, .delete-btn, #addProductBtn").forEach(btn => btn.disabled = true);
+      }
+
+      addProductBtn.addEventListener("click", () => openModal(addProductModal));
+      document.getElementById("closeAddModal").addEventListener("click", () => closeModal(addProductModal));
+      document.getElementById("closeEditModal").addEventListener("click", () => closeModal(editProductModal));
+      document.getElementById("closeOrderModal").addEventListener("click", () => closeModal(updateOrderModal));
+
+      document.getElementById("addProductForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("addName").value;
+        const price = parseFloat(document.getElementById("addPrice").value);
+        const description = document.getElementById("addDesc").value;
+        const file = document.getElementById("addImage").files[0];
+        showLoader();
+        try {
+          const imageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+          await uploadBytes(imageRef, file);
+          const imageUrl = await getDownloadURL(imageRef);
+          await addDoc(collection(db, "products"), { name, price, description, imageUrl });
+          closeModal(addProductModal);
+          showNotification("Product added successfully!");
+        } catch (err) {
+          console.error("Add product error:", err);
+          alert(`Error: ${err.message}`);
+        }
+        hideLoader();
+      });
+
+      document.getElementById("editProductForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("editId").value;
+        const name = document.getElementById("editName").value;
+        const price = parseFloat(document.getElementById("editPrice").value);
+        const description = document.getElementById("editDesc").value;
+        const file = document.getElementById("editImage").files[0];
+        showLoader();
+        try {
+          const updates = { name, price, description };
+          if (file) {
+            const imageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+            await uploadBytes(imageRef, file);
+            updates.imageUrl = await getDownloadURL(imageRef);
+          }
+          await updateDoc(doc(db, "products", id), updates);
+          closeModal(editProductModal);
+          showNotification("Product updated successfully!");
+        } catch (err) {
+          console.error("Edit product error:", err);
+          alert(`Error: ${err.message}`);
+        }
+        hideLoader();
+      });
+
+      document.getElementById("updateOrderForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("orderId").value;
+        const status = document.getElementById("orderStatus").value;
+        showLoader();
+        try {
+          await updateDoc(doc(db, "orders", id), { status });
+          closeModal(updateOrderModal);
+          showNotification("Order status updated!");
+        } catch (err) {
+          console.error("Update order error:", err);
+          alert(`Error: ${err.message}`);
+        }
+        hideLoader();
+      });
+    }
+
+    function setupCardListeners() {
+      document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const id = e.target.getAttribute("data-id");
+          showLoader();
+          const docSnap = await getDoc(doc(db, "products", id));
+          const product = docSnap.data();
+          document.getElementById("editId").value = id;
+          document.getElementById("editName").value = product.name;
+          document.getElementById("editPrice").value = product.price;
+          document.getElementById("editDesc").value = product.description;
+          openModal(editProductModal);
+          hideLoader();
+        });
+      });
+
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const id = e.target.getAttribute("data-id");
+          if (confirm("Are you sure?")) {
+            showLoader();
+            await deleteDoc(doc(db, "products", id));
+            showNotification("Product deleted!");
+            hideLoader();
+          }
+        });
+      });
+
+      document.querySelectorAll(".action-btn:not(.edit-btn):not(.delete-btn)").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          document.getElementById("orderId").value = e.target.getAttribute("data-id");
+          document.getElementById("orderStatus").value = e.target.getAttribute("data-status");
+          openModal(updateOrderModal);
+        });
+      });
+    }
+
+    // Note: getDoc was used incorrectly above, here's the corrected import and usage
+    import { getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+  </script>
+</body>
+</html>
