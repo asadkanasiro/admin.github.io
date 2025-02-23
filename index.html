@@ -4,235 +4,62 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - Zindagi Perfumes</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-    }
-    body {
-      background: #f9f9f9;
-      color: #333;
-      line-height: 1.6;
-    }
-    /* Login Container */
-    .login-container, .admin-container {
-      display: none;
-      min-height: 100vh;
-      justify-content: center;
-      align-items: center;
-    }
-    .login-container.active, .admin-container.active {
-      display: flex;
-    }
-    .login-card {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 380px;
-      text-align: center;
-      background: linear-gradient(135deg, #ffffff, #f0f0f0);
-    }
-    .login-card h2 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      color: #1a1a1a;
-    }
-    .login-container input {
-      width: 100%;
-      padding: 0.8rem;
-      margin: 0.6rem 0;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-    }
-    .login-container input:focus {
-      border-color: #00b4cc;
-      outline: none;
-    }
-    .login-container button {
-      width: 100%;
-      background: #00b4cc;
-      border: none;
-      color: #fff;
-      padding: 0.8rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s;
-    }
-    .login-container button:hover {
-      background: #0097a7;
-      transform: translateY(-2px);
-    }
-    .error-message {
-      color: #e91e63;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      font-weight: 400;
-    }
-    /* Admin Dashboard */
-    .admin-container {
-      flex-direction: row;
-    }
-    .sidebar {
-      width: 240px;
-      background: #1a1a1a;
-      color: #fff;
-      height: 100vh;
-      position: fixed;
-      display: flex;
-      flex-direction: column;
-      transition: width 0.3s ease;
-    }
-    .sidebar header {
-      padding: 1.5rem;
-      background: linear-gradient(90deg, #1a1a1a, #2d2d2d);
-      text-align: center;
-    }
-    .sidebar header h2 {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: #00b4cc;
-    }
-    .sidebar nav ul {
-      list-style: none;
-      flex-grow: 1;
-      padding: 0.5rem 0;
-    }
-    .sidebar nav ul li a {
-      display: block;
-      padding: 1rem 1.5rem;
-      color: #b0b0b0;
-      text-decoration: none;
-      font-size: 1rem;
-      font-weight: 400;
-      transition: all 0.3s ease;
-    }
-    .sidebar nav ul li a:hover, .sidebar nav ul li a.active {
-      background: #00b4cc;
-      color: #fff;
-    }
-    .sidebar footer {
-      padding: 1.5rem;
-    }
-    .sidebar footer button {
-      width: 100%;
-      background: #00b4cc;
-      border: none;
-      color: #fff;
-      padding: 0.8rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    .sidebar footer button:hover {
-      background: #0097a7;
-    }
-    .content {
-      margin-left: 240px;
-      flex: 1;
-      padding: 2rem;
-    }
-    .section {
-      display: none;
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    }
-    .section.active {
-      display: block;
-    }
-    .section h2 {
-      font-size: 1.6rem;
-      font-weight: 600;
-      color: #1a1a1a;
-      margin-bottom: 1.5rem;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-    }
-    .stat-item {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border-left: 4px solid #00b4cc;
-    }
-    .stat-item:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
-    .stat-item span {
-      display: block;
-      font-size: 2rem;
-      font-weight: 600;
-      color: #00b4cc;
-      margin-bottom: 0.5rem;
-    }
-    .stat-item p {
-      font-size: 0.95rem;
-      color: #666;
-      font-weight: 400;
-    }
-    /* Loader */
-    .loader {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 180, 204, 0.9);
-      color: #fff;
-      padding: 1rem 2rem;
-      border-radius: 10px;
-      display: none;
-      z-index: 1000;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(5px);
-    }
-    /* Responsive */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+    body { background: #ecf0f1; color: #2c3e50; line-height: 1.5; }
+    .login-container, .admin-container { display: none; min-height: 100vh; justify-content: center; align-items: center; }
+    .login-container.active, .admin-container.active { display: flex; }
+    .login-card { background: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); width: 100%; max-width: 420px; text-align: center; }
+    .login-card h2 { font-size: 1.75rem; font-weight: 500; margin-bottom: 2rem; color: #2c3e50; }
+    .login-container input { width: 100%; padding: 0.85rem; margin: 0.75rem 0; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; transition: border-color 0.3s; }
+    .login-container input:focus { border-color: #d4a017; outline: none; }
+    .login-container button, .action-btn { width: 100%; background: #d4a017; border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
+    .login-container button:hover, .action-btn:hover { background: #b58900; }
+    .error-message { color: #c0392b; margin-top: 1rem; font-size: 0.9rem; font-weight: 400; }
+    .admin-container { flex-direction: row; }
+    .sidebar { width: 280px; background: #2c3e50; color: #ecf0f1; height: 100vh; position: fixed; display: flex; flex-direction: column; border-right: 1px solid #34495e; }
+    .sidebar header { padding: 2rem 1.5rem; border-bottom: 1px solid #34495e; }
+    .sidebar header h2 { font-size: 1.5rem; font-weight: 700; color: #d4a017; letter-spacing: 0.5px; }
+    .sidebar nav ul { list-style: none; flex-grow: 1; padding: 1rem 0; }
+    .sidebar nav ul li a { display: block; padding: 1rem 1.5rem; color: #bdc3c7; text-decoration: none; font-size: 1.1rem; font-weight: 400; transition: all 0.3s; }
+    .sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: #34495e; color: #d4a017; }
+    .sidebar footer { padding: 1.5rem; border-top: 1px solid #34495e; }
+    .sidebar footer button { width: 100%; background: #d4a017; border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
+    .sidebar footer button:hover { background: #b58900; }
+    .content { margin-left: 280px; flex: 1; padding: 2.5rem; }
+    .section { display: none; background: #fff; padding: 2rem; border-radius: 8px; border: 1px solid #e0e4e8; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
+    .section.active { display: block; }
+    .section h2 { font-size: 1.75rem; font-weight: 500; color: #2c3e50; margin-bottom: 1.5rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+    .stat-item { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e0e4e8; text-align: center; transition: box-shadow 0.3s; }
+    .stat-item:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    .stat-item span { display: block; font-size: 2.25rem; font-weight: 700; color: #d4a017; margin-bottom: 0.5rem; }
+    .stat-item p { font-size: 1rem; color: #7f8c8d; font-weight: 400; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e0e4e8; }
+    .table th { background: #f7f9fa; font-weight: 500; color: #2c3e50; }
+    .table td button { width: auto; padding: 0.5rem 1rem; margin-right: 0.5rem; font-size: 0.9rem; }
+    .delete-btn { background: #c0392b; }
+    .delete-btn:hover { background: #a73125; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
+    .modal-content h3 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #2c3e50; }
+    .modal-content label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    .modal-content input, .modal-content textarea { width: 100%; padding: 0.75rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
+    .modal-content textarea { resize: vertical; min-height: 100px; }
+    .modal-content button { margin-top: 1.5rem; }
+    .close-btn { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d; }
+    .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(44, 62, 80, 0.9); color: #fff; padding: 1rem 2rem; border-radius: 4px; display: none; z-index: 1001; font-weight: 500; }
     @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem;
-      }
-      .sidebar header {
-        padding: 0.5rem;
-      }
-      .sidebar nav ul {
-        display: flex;
-        padding: 0;
-      }
-      .sidebar nav ul li a {
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
-      }
-      .sidebar footer {
-        padding: 0.5rem;
-      }
-      .content {
-        margin-left: 0;
-        padding: 1rem;
-      }
+      .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 1rem; }
+      .sidebar header { padding: 1rem; }
+      .sidebar nav ul { display: flex; padding: 0; }
+      .sidebar nav ul li a { padding: 0.75rem 1rem; font-size: 0.95rem; }
+      .sidebar footer { padding: 1rem; }
+      .content { margin-left: 0; padding: 1.5rem; }
+      .table { font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -240,7 +67,7 @@
   <!-- Login Form -->
   <div class="login-container" id="loginContainer">
     <div class="login-card">
-      <h2>Admin Access</h2>
+      <h2>Admin Login</h2>
       <input type="email" id="email" placeholder="Email Address" />
       <input type="password" id="password" placeholder="Password" />
       <button id="loginBtn">Sign In</button>
@@ -256,6 +83,7 @@
         <ul>
           <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
           <li><a href="#" data-section="products">Products</a></li>
+          <li><a href="#" data-section="orders">Orders</a></li>
         </ul>
       </nav>
       <footer><button id="logoutBtn">Sign Out</button></footer>
@@ -272,20 +100,82 @@
             <span id="totalOrders">0</span>
             <p>Total Orders</p>
           </div>
+          <div class="stat-item">
+            <span id="totalRevenue">0</span>
+            <p>Total Revenue (PKR)</p>
+          </div>
         </div>
       </section>
       <section id="products" class="section">
         <h2>Products</h2>
-        <div id="productsList">Manage your products here.</div>
+        <button class="action-btn" id="addProductBtn" style="width: auto; margin-bottom: 1.5rem;">Add Product</button>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Price (PKR)</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsList"></tbody>
+        </table>
+      </section>
+      <section id="orders" class="section">
+        <h2>Orders</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Amount (PKR)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ordersList"></tbody>
+        </table>
       </section>
     </main>
+  </div>
+
+  <!-- Product Modals -->
+  <div id="addProductModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeAddModal">&times;</button>
+      <h3>Add Product</h3>
+      <form id="addProductForm">
+        <label for="addName">Name</label>
+        <input type="text" id="addName" required />
+        <label for="addPrice">Price (PKR)</label>
+        <input type="number" id="addPrice" step="0.01" required />
+        <label for="addDesc">Description</label>
+        <textarea id="addDesc" required></textarea>
+        <button type="submit" class="action-btn">Add Product</button>
+      </form>
+    </div>
+  </div>
+  <div id="editProductModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeEditModal">&times;</button>
+      <h3>Edit Product</h3>
+      <form id="editProductForm">
+        <input type="hidden" id="editId" />
+        <label for="editName">Name</label>
+        <input type="text" id="editName" required />
+        <label for="editPrice">Price (PKR)</label>
+        <input type="number" id="editPrice" step="0.01" required />
+        <label for="editDesc">Description</label>
+        <textarea id="editDesc" required></textarea>
+        <button type="submit" class="action-btn">Save Changes</button>
+      </form>
+    </div>
   </div>
 
   <div id="loader" class="loader">Loading...</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -309,6 +199,13 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const loginError = document.getElementById("loginError");
     const loader = document.getElementById("loader");
+    const addProductBtn = document.getElementById("addProductBtn");
+    const addProductModal = document.getElementById("addProductModal");
+    const editProductModal = document.getElementById("editProductModal");
+    const closeAddModal = document.getElementById("closeAddModal");
+    const closeEditModal = document.getElementById("closeEditModal");
+    const addProductForm = document.getElementById("addProductForm");
+    const editProductForm = document.getElementById("editProductForm");
 
     // Utility Functions
     const showLoader = () => loader.style.display = "block";
@@ -321,6 +218,11 @@
       loginContainer.classList.remove("active");
       adminContainer.classList.add("active");
     };
+    const openModal = (modal) => {
+      modal.classList.add("active");
+      modal.querySelector("input").focus();
+    };
+    const closeModal = (modal) => modal.classList.remove("active");
 
     // Authentication State
     onAuthStateChanged(auth, (user) => {
@@ -346,9 +248,7 @@
       const password = document.getElementById("password").value;
       showLoader();
       signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          loginError.textContent = "";
-        })
+        .then(() => loginError.textContent = "")
         .catch(err => {
           loginError.textContent = "Login failed: " + err.message;
           hideLoader();
@@ -356,9 +256,7 @@
     });
 
     // Logout
-    logoutBtn.addEventListener("click", () => {
-      signOut(auth);
-    });
+    logoutBtn.addEventListener("click", () => signOut(auth));
 
     // Sidebar Navigation
     document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
@@ -375,16 +273,156 @@
     // Initialize Dashboard
     function initializeAdminDashboard() {
       loadDashboardStats();
+      loadProducts();
+      loadOrders();
+      setupModalListeners();
     }
 
+    // Dashboard Stats
     function loadDashboardStats() {
       showLoader();
       onSnapshot(collection(db, "products"), (snap) => {
         document.getElementById("totalProducts").textContent = snap.size;
+      });
+      onSnapshot(collection(db, "orders"), (snap) => {
+        document.getElementById("totalOrders").textContent = snap.size;
+        let totalRevenue = 0;
+        snap.forEach(doc => {
+          const order = doc.data();
+          totalRevenue += order.amount || 0;
+        });
+        document.getElementById("totalRevenue").textContent = totalRevenue.toFixed(2);
         hideLoader();
       }, (err) => {
-        loginError.textContent = "Failed to load data: " + err.message;
+        console.error("Stats error:", err);
         hideLoader();
+      });
+    }
+
+    // Load Products
+    function loadProducts() {
+      const productsList = document.getElementById("productsList");
+      showLoader();
+      onSnapshot(collection(db, "products"), (snap) => {
+        productsList.innerHTML = "";
+        snap.forEach(doc => {
+          const product = { id: doc.id, ...doc.data() };
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.price.toFixed(2)}</td>
+            <td>${product.description || "N/A"}</td>
+            <td>
+              <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
+              <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
+            </td>
+          `;
+          productsList.appendChild(row);
+        });
+        hideLoader();
+      });
+    }
+
+    // Load Orders
+    function loadOrders() {
+      const ordersList = document.getElementById("ordersList");
+      showLoader();
+      onSnapshot(collection(db, "orders"), (snap) => {
+        ordersList.innerHTML = "";
+        snap.forEach(doc => {
+          const order = { id: doc.id, ...doc.data() };
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${order.orderId || order.id}</td>
+            <td>${order.customerEmail || "Unknown"}</td>
+            <td>${order.amount.toFixed(2)}</td>
+            <td>${order.status || "Pending"}</td>
+          `;
+          ordersList.appendChild(row);
+        });
+        hideLoader();
+      });
+    }
+
+    // Modal Listeners
+    function setupModalListeners() {
+      addProductBtn.addEventListener("click", () => {
+        addProductForm.reset();
+        openModal(addProductModal);
+      });
+      closeAddModal.addEventListener("click", () => closeModal(addProductModal));
+      closeEditModal.addEventListener("click", () => closeModal(editProductModal));
+
+      addProductForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("addName").value;
+        const price = parseFloat(document.getElementById("addPrice").value);
+        const description = document.getElementById("addDesc").value;
+        if (price <= 0) {
+          alert("Price must be positive.");
+          return;
+        }
+        showLoader();
+        addDoc(collection(db, "products"), { name, price, description })
+          .then(() => {
+            closeModal(addProductModal);
+            hideLoader();
+          })
+          .catch(err => {
+            alert("Failed to add product: " + err.message);
+            hideLoader();
+          });
+      });
+
+      editProductForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const id = document.getElementById("editId").value;
+        const name = document.getElementById("editName").value;
+        const price = parseFloat(document.getElementById("editPrice").value);
+        const description = document.getElementById("editDesc").value;
+        if (price <= 0) {
+          alert("Price must be positive.");
+          return;
+        }
+        showLoader();
+        updateDoc(doc(db, "products", id), { name, price, description })
+          .then(() => {
+            closeModal(editProductModal);
+            hideLoader();
+          })
+          .catch(err => {
+            alert("Failed to update product: " + err.message);
+            hideLoader();
+          });
+      });
+
+      document.getElementById("productsList").addEventListener("click", (e) => {
+        const target = e.target;
+        if (target.classList.contains("edit-btn")) {
+          const id = target.getAttribute("data-id");
+          const productRef = doc(db, "products", id);
+          showLoader();
+          getDoc(productRef).then(docSnap => {
+            const product = docSnap.data();
+            document.getElementById("editId").value = id;
+            document.getElementById("editName").value = product.name;
+            document.getElementById("editPrice").value = product.price;
+            document.getElementById("editDesc").value = product.description || "";
+            openModal(editProductModal);
+            hideLoader();
+          });
+        } else if (target.classList.contains("delete-btn")) {
+          const id = target.getAttribute("data-id");
+          if (confirm("Are you sure you want to delete this product?")) {
+            showLoader();
+            deleteDoc(doc(db, "products", id))
+              .then(() => hideLoader())
+              .catch(err => {
+                alert("Failed to delete product: " + err.message);
+                hideLoader();
+              });
+          }
+        }
       });
     }
   </script>
