@@ -1,11 +1,15 @@
 // Import necessary Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { 
+  initializeApp 
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
 import { 
   getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, addDoc, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+import { 
+  getAuth, onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-// Firebase configuration (same as public site)
+// Firebase configuration (replace with your actual config)
 const firebaseConfig = {
   apiKey: "AIzaSyC-sMxHYSiwld_U5GO7oGtHPw5CaVY_16s",
   authDomain: "zindagi-334b7.firebaseapp.com",
@@ -22,10 +26,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Define admin email (for simplicity; consider custom claims for production)
+// Define admin email (for simplicity; consider using custom claims for production)
 const adminEmail = "admin@zindagiperfumes.com";
 
-// Utility: Show loader
+// Utility: Loader functions
 function showLoader() {
   document.getElementById("loader").style.display = "block";
 }
@@ -49,17 +53,19 @@ navLinks.forEach(link => {
 });
 
 // --- Authentication Check ---
+// IMPORTANT: Since the admin dashboard is hosted as "index.html" in Repository 2,
+// redirect unauthorized users to a different public page (e.g., "public.html").
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "index.html";
+    window.location.href = "public.html";
   } else {
     if (user.email !== adminEmail) {
       alert("Access denied. Admins only.");
       signOut(auth).then(() => {
-        window.location.href = "index.html";
+        window.location.href = "public.html";
       });
     } else {
-      // Load dashboard stats and data
+      // Load admin data and dashboard stats
       loadDashboardStats();
       loadProducts();
       loadOrders();
@@ -72,13 +78,12 @@ onAuthStateChanged(auth, (user) => {
 // --- Logout ---
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => {
-    window.location.href = "index.html";
+    window.location.href = "public.html";
   });
 });
 
 // --- Dashboard Stats ---
 function loadDashboardStats() {
-  // Count products, orders, contacts, subscribers
   onSnapshot(collection(db, "products"), (snapshot) => {
     document.getElementById("totalProducts").textContent = snapshot.size;
   });
@@ -112,14 +117,12 @@ function loadProducts() {
       productsDiv.appendChild(productDiv);
     });
     hideLoader();
-    // Attach event listeners for edit buttons
     document.querySelectorAll(".edit-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const productId = e.target.getAttribute("data-id");
         openEditModal(productId);
       });
     });
-    // Attach event listeners for delete buttons
     document.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const productId = e.target.getAttribute("data-id");
