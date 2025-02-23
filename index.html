@@ -8,82 +8,63 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
-    body { background: #f5e8c7; color: #2c3e50; line-height: 1.5; }
+    body { background: #f4f1e9; color: #2c3e50; line-height: 1.5; }
     .login-container, .admin-container { display: none; min-height: 100vh; }
     .login-container.active, .admin-container.active { display: block; }
-    .login-card { background: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); width: 100%; max-width: 420px; margin: 0 auto; text-align: center; }
-    .login-card h2 { font-size: 1.75rem; font-weight: 500; margin-bottom: 2rem; color: #4a2c1f; }
+    .login-card { background: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); width: 100%; max-width: 420px; margin: 5rem auto; text-align: center; }
+    .login-card h2 { font-size: 1.75rem; font-weight: 500; margin-bottom: 2rem; color: #d4a017; }
     .login-container input { width: 100%; padding: 0.85rem; margin: 0.75rem 0; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; transition: border-color 0.3s; }
-    .login-container input:focus { border-color: #e8b923; outline: none; }
-    .login-container button, .action-btn { background: #e8b923; border: none; color: #fff; padding: 0.85rem 1.5rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
-    .login-container button:hover, .action-btn:hover { background: #c99d1e; }
-    .error-message { color: #c0392b; margin-top: 1rem; font-size: 0.9rem; font-weight: 400; }
+    .login-container input:focus { border-color: #d4a017; outline: none; }
+    .login-container button, .action-btn { background: #d4a017; border: none; color: #fff; padding: 0.85rem 1.5rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
+    .login-container button:hover, .action-btn:hover { background: #b58900; }
+    .error-message { color: #c0392b; margin-top: 1rem; font-size: 0.9rem; }
     .admin-container { padding: 1rem; }
-    .sidebar { background: #4a2c1f; color: #f5e8c7; position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; transition: left 0.3s; z-index: 1001; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); }
+    .sidebar { background: #2c3e50; color: #ecf0f1; position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; transition: left 0.3s; z-index: 1001; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); }
     .sidebar.active { left: 0; }
-    .sidebar header { padding: 2rem 1.5rem; border-bottom: 1px solid #5a3b2f; }
+    .sidebar header { padding: 2rem 1.5rem; border-bottom: 1px solid #34495e; text-align: center; }
+    .sidebar header h2 { font-size: 1.5rem; font-weight: 700; color: #d4a017; }
     .sidebar header img { max-width: 100px; margin-bottom: 1rem; }
-    .sidebar header h2 { font-size: 1.5rem; font-weight: 700; color: #e8b923; letter-spacing: 0.5px; }
     .sidebar nav ul { list-style: none; padding: 1rem 0; }
-    .sidebar nav ul li a { display: block; padding: 1rem 1.5rem; color: #f5e8c7; text-decoration: none; font-size: 1.1rem; font-weight: 400; transition: all 0.3s; }
-    .sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: #5a3b2f; color: #e8b923; }
-    .sidebar footer { padding: 1.5rem; border-top: 1px solid #5a3b2f; }
-    .sidebar footer button { width: 100%; background: #e8b923; border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
-    .sidebar footer button:hover { background: #c99d1e; }
-    .menu-toggle { display: none; background: #4a2c1f; color: #f5e8c7; border: none; padding: 1rem; font-size: 1.5rem; cursor: pointer; position: fixed; left: 1rem; top: 1rem; z-index: 1002; border-radius: 4px; }
-    .menu-toggle:hover { background: #5a3b2f; }
+    .sidebar nav ul li a { display: block; padding: 1rem 1.5rem; color: #bdc3c7; text-decoration: none; font-size: 1.1rem; transition: all 0.3s; }
+    .sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: #34495e; color: #d4a017; }
+    .sidebar footer { padding: 1.5rem; border-top: 1px solid #34495e; }
+    .sidebar footer button { width: 100%; background: #d4a017; padding: 0.85rem; border-radius: 4px; }
+    .menu-toggle { background: #2c3e50; color: #ecf0f1; border: none; padding: 1rem; font-size: 1.5rem; cursor: pointer; position: fixed; left: 1rem; top: 1rem; z-index: 1002; border-radius: 4px; }
+    .menu-toggle:hover { background: #34495e; }
     .content { margin-left: 0; transition: margin-left 0.3s; }
     .content.active { margin-left: 280px; }
     .section { background: #fff; padding: 2rem; border-radius: 8px; border: 1px solid #e0e4e8; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); margin-bottom: 1.5rem; }
-    .section h2 { font-size: 1.75rem; font-weight: 500; color: #4a2c1f; margin-bottom: 1.5rem; }
-    .search-bar { margin-bottom: 1.5rem; }
-    .search-bar input { width: 100%; max-width: 300px; padding: 0.85rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
+    .section h2 { font-size: 1.75rem; font-weight: 500; color: #d4a017; margin-bottom: 1.5rem; }
+    .search-bar { margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; }
+    .search-bar input, .search-bar select { padding: 0.85rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
     .stats-grid, .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-    .stat-card, .card { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e0e4e8; text-align: center; transition: box-shadow 0.3s; }
+    .stat-card, .card { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e0e4e8; text-align: center; }
     .stat-card:hover, .card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-    .stat-card span { display: block; font-size: 2.25rem; font-weight: 700; color: #e8b923; margin-bottom: 0.5rem; }
-    .stat-card p, .card p { font-size: 1rem; color: #7f8c8d; font-weight: 400; }
-    .card h4 { font-size: 1.2rem; font-weight: 500; color: #4a2c1f; margin-bottom: 0.75rem; }
+    .stat-card span { font-size: 2.25rem; font-weight: 700; color: #d4a017; margin-bottom: 0.5rem; display: block; }
+    .card img { max-width: 100%; border-radius: 4px; margin: 0.5rem 0; }
     .card .actions { margin-top: 1rem; }
-    .card button { width: 100%; margin: 0.25rem 0; padding: 0.7rem; font-size: 0.9rem; }
-    .action-btn.edit-btn { background: #e8b923; }
-    .action-btn.edit-btn:hover { background: #c99d1e; }
+    .action-btn.edit-btn { background: #d4a017; }
+    .action-btn.edit-btn:hover { background: #b58900; }
     .action-btn.delete-btn { background: #c0392b; }
     .action-btn.delete-btn:hover { background: #a73125; }
-    .export-btn { background: #3498db; margin-left: 1rem; }
+    .export-btn { background: #3498db; }
     .export-btn:hover { background: #2980b9; }
+    .pagination { display: flex; justify-content: space-between; margin-top: 1rem; }
+    .pagination button { padding: 0.5rem 1rem; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
-    .modal-content { background: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
-    .modal-content h3 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #4a2c1f; }
-    .modal-content label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
-    .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 0.75rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
-    .modal-content textarea { resize: vertical; min-height: 100px; }
-    .modal-content button { margin-top: 1.5rem; }
+    .modal-content { background: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; }
+    .modal-content input[type="file"] { padding: 0.5rem 0; }
     .close-btn { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d; }
-    .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(74, 44, 31, 0.9); color: #fff; padding: 1rem 2rem; border-radius: 4px; display: none; z-index: 1001; font-weight: 500; }
+    .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(44, 62, 80, 0.9); color: #fff; padding: 1rem 2rem; border-radius: 4px; display: none; z-index: 1001; }
     .notifications { position: fixed; top: 1rem; right: 1rem; background: #fff; padding: 1rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; display: none; }
-    .notification { padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e0e4e8; font-size: 0.9rem; color: #4a2c1f; }
+    .notification { padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e0e4e8; }
     .chart-container { width: 100%; max-width: 600px; margin: 2rem auto; }
-    .pagination { margin-top: 1rem; display: flex; gap: 1rem; align-items: center; }
-    .pagination button { background: #e8b923; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
-    .pagination button:disabled { background: #bdc3c7; cursor: not-allowed; }
-    .pagination button:hover:not(:disabled) { background: #c99d1e; }
-    .pagination select { padding: 0.5rem; border-radius: 4px; }
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
       .sidebar { left: -280px; }
-      .content { margin-left: 0; }
       .content.active { margin-left: 0; padding-top: 4rem; }
-      .stats-grid, .cards-grid { grid-template-columns: 1fr; gap: 1rem; }
-      .stat-card, .card { padding: 1rem; }
-      .stat-card span { font-size: 1.8rem; }
-      .stat-card p, .card p { font-size: 0.9rem; }
-      .card h4 { font-size: 1.1rem; }
-      .card button { padding: 0.6rem; font-size: 0.8rem; }
-      .search-bar input { max-width: 100%; }
-      .chart-container { max-width: 100%; }
-      .pagination { flex-direction: column; gap: 0.5rem; }
+      .stats-grid, .cards-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -91,7 +72,7 @@
   <!-- Login Form -->
   <div class="login-container active" id="loginContainer">
     <div class="login-card">
-      <h2>Admin Login</h2>
+      <h2>Zindagi Perfumes Admin</h2>
       <input type="email" id="email" placeholder="Email Address" />
       <input type="password" id="password" placeholder="Password" />
       <button id="loginBtn">Sign In</button>
@@ -104,7 +85,7 @@
     <button class="menu-toggle" id="menuToggle">☰</button>
     <aside class="sidebar">
       <header>
-        <img src="logo.png" alt="Zindagi Perfumes">
+        <img src="https://via.placeholder.com/100?text=ZP" alt="Zindagi Perfumes Logo" />
         <h2>Zindagi Perfumes</h2>
       </header>
       <nav>
@@ -117,21 +98,12 @@
       <footer><button id="logoutBtn">Sign Out</button></footer>
     </aside>
     <main class="content">
-      <section id="dashboard" class="section">
+      <section id="dashboard" class="section active">
         <h2>Dashboard</h2>
         <div class="stats-grid">
-          <div class="stat-card">
-            <span id="totalProducts">0</span>
-            <p>Total Products</p>
-          </div>
-          <div class="stat-card">
-            <span id="totalOrders">0</span>
-            <p>Total Orders</p>
-          </div>
-          <div class="stat-card">
-            <span id="totalRevenue">0</span>
-            <p>Total Revenue (PKR)</p>
-          </div>
+          <div class="stat-card"><span id="totalProducts">0</span><p>Total Products</p></div>
+          <div class="stat-card"><span id="totalOrders">0</span><p>Total Orders</p></div>
+          <div class="stat-card"><span id="totalRevenue">0</span><p>Total Revenue (PKR)</p></div>
         </div>
         <div class="chart-container">
           <canvas id="revenueChart"></canvas>
@@ -141,58 +113,50 @@
         <h2>Products</h2>
         <div class="search-bar">
           <input type="text" id="productSearch" placeholder="Search products..." />
+          <select id="productSort">
+            <option value="name">Sort by Name</option>
+            <option value="price">Sort by Price</option>
+          </select>
         </div>
         <button class="action-btn" id="addProductBtn">Add Product</button>
         <button class="action-btn export-btn" id="exportProductsBtn">Export Products</button>
         <div class="cards-grid" id="productsCards"></div>
         <div class="pagination">
-          <button id="prevProducts" disabled>Previous</button>
-          <span id="pageProducts">Page 1</span>
+          <button id="prevProducts">Previous</button>
+          <span id="productsPage">Page 1</span>
           <button id="nextProducts">Next</button>
-          <select id="sortProducts">
-            <option value="nameAsc">Name (A-Z)</option>
-            <option value="nameDesc">Name (Z-A)</option>
-            <option value="priceAsc">Price (Low to High)</option>
-            <option value="priceDesc">Price (High to Low)</option>
-          </select>
         </div>
       </section>
       <section id="orders" class="section">
         <h2>Orders</h2>
         <div class="search-bar">
           <input type="text" id="orderSearch" placeholder="Search orders..." />
+          <select id="orderSort">
+            <option value="orderId">Sort by Order ID</option>
+            <option value="amount">Sort by Amount</option>
+          </select>
         </div>
         <button class="action-btn export-btn" id="exportOrdersBtn">Export Orders</button>
         <div class="cards-grid" id="ordersCards"></div>
         <div class="pagination">
-          <button id="prevOrders" disabled>Previous</button>
-          <span id="pageOrders">Page 1</span>
+          <button id="prevOrders">Previous</button>
+          <span id="ordersPage">Page 1</span>
           <button id="nextOrders">Next</button>
-          <select id="sortOrders">
-            <option value="idAsc">Order ID (Asc)</option>
-            <option value="idDesc">Order ID (Desc)</option>
-            <option value="amountAsc">Amount (Low to High)</option>
-            <option value="amountDesc">Amount (High to Low)</option>
-          </select>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- Product Modals -->
+  <!-- Modals -->
   <div id="addProductModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeAddModal">×</button>
       <h3>Add Product</h3>
       <form id="addProductForm">
-        <label for="addName">Name</label>
-        <input type="text" id="addName" required />
-        <label for="addPrice">Price (PKR)</label>
-        <input type="number" id="addPrice" step="0.01" required />
-        <label for="addDesc">Description</label>
-        <textarea id="addDesc" required></textarea>
-        <label for="addImage">Image</label>
-        <input type="file" id="addImage" accept="image/*" required />
+        <label>Name</label><input type="text" id="addName" required />
+        <label>Price (PKR)</label><input type="number" id="addPrice" step="0.01" required />
+        <label>Description</label><textarea id="addDesc" required></textarea>
+        <label>Image</label><input type="file" id="addImage" accept="image/*" required />
         <button type="submit" class="action-btn">Add Product</button>
       </form>
     </div>
@@ -203,27 +167,21 @@
       <h3>Edit Product</h3>
       <form id="editProductForm">
         <input type="hidden" id="editId" />
-        <label for="editName">Name</label>
-        <input type="text" id="editName" required />
-        <label for="editPrice">Price (PKR)</label>
-        <input type="number" id="editPrice" step="0.01" required />
-        <label for="editDesc">Description</label>
-        <textarea id="editDesc" required></textarea>
-        <label for="editImage">Image</label>
-        <input type="file" id="editImage" accept="image/*" />
+        <label>Name</label><input type="text" id="editName" required />
+        <label>Price (PKR)</label><input type="number" id="editPrice" step="0.01" required />
+        <label>Description</label><textarea id="editDesc" required></textarea>
+        <label>Image</label><input type="file" id="editImage" accept="image/*" />
         <button type="submit" class="action-btn">Save Changes</button>
       </form>
     </div>
   </div>
-
-  <!-- Order Status Modal -->
   <div id="updateOrderModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeOrderModal">×</button>
       <h3>Update Order Status</h3>
       <form id="updateOrderForm">
         <input type="hidden" id="orderId" />
-        <label for="orderStatus">Status</label>
+        <label>Status</label>
         <select id="orderStatus" required>
           <option value="Pending">Pending</option>
           <option value="Shipped">Shipped</option>
@@ -239,18 +197,18 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC-sMxHYSiwld_U5GO7oGtHPw5CaVY_16s",
-      authDomain: "zindagi-334b7.firebaseapp.com",
-      projectId: "zindagi-334b7",
-      storageBucket: "zindagi-334b7.firebasestorage.app",
-      messagingSenderId: "936307521870",
-      appId: "1:936307521870:web:619c050d865cff2ac9861f",
-      measurementId: "G-B4HP267SJF"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -266,54 +224,38 @@
     const content = document.querySelector(".content");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
-    const loginError = document.getElementById("loginError");
     const loader = document.getElementById("loader");
     const notifications = document.getElementById("notifications");
     const addProductBtn = document.getElementById("addProductBtn");
     const addProductModal = document.getElementById("addProductModal");
     const editProductModal = document.getElementById("editProductModal");
     const updateOrderModal = document.getElementById("updateOrderModal");
-    const closeAddModal = document.getElementById("closeAddModal");
-    const closeEditModal = document.getElementById("closeEditModal");
-    const closeOrderModal = document.getElementById("closeOrderModal");
-    const addProductForm = document.getElementById("addProductForm");
-    const editProductForm = document.getElementById("editProductForm");
-    const updateOrderForm = document.getElementById("updateOrderForm");
-    const productSearch = document.getElementById("productSearch");
-    const orderSearch = document.getElementById("orderSearch");
     const productsCards = document.getElementById("productsCards");
     const ordersCards = document.getElementById("ordersCards");
-    const exportProductsBtn = document.getElementById("exportProductsBtn");
-    const exportOrdersBtn = document.getElementById("exportOrdersBtn");
+    const productSearch = document.getElementById("productSearch");
+    const orderSearch = document.getElementById("orderSearch");
+    const productSort = document.getElementById("productSort");
+    const orderSort = document.getElementById("orderSort");
     const prevProducts = document.getElementById("prevProducts");
     const nextProducts = document.getElementById("nextProducts");
-    const pageProducts = document.getElementById("pageProducts");
-    const sortProducts = document.getElementById("sortProducts");
     const prevOrders = document.getElementById("prevOrders");
     const nextOrders = document.getElementById("nextOrders");
-    const pageOrders = document.getElementById("pageOrders");
-    const sortOrders = document.getElementById("sortOrders");
+    const productsPage = document.getElementById("productsPage");
+    const ordersPage = document.getElementById("ordersPage");
+
+    // State
+    let productsLastDoc = null, ordersLastDoc = null;
+    let productsPageNum = 1, ordersPageNum = 1;
+    const perPage = 5;
 
     // Utility Functions
     const showLoader = () => loader.style.display = "block";
     const hideLoader = () => loader.style.display = "none";
-    const showLogin = () => {
-      loginContainer.classList.add("active");
-      adminContainer.classList.remove("active");
-    };
-    const showAdmin = () => {
-      loginContainer.classList.remove("active");
-      adminContainer.classList.add("active");
-    };
-    const openModal = (modal) => {
-      modal.classList.add("active");
-      modal.querySelector("input, select").focus();
-    };
+    const showLogin = () => { loginContainer.classList.add("active"); adminContainer.classList.remove("active"); };
+    const showAdmin = () => { loginContainer.classList.remove("active"); adminContainer.classList.add("active"); };
+    const openModal = (modal) => modal.classList.add("active");
     const closeModal = (modal) => modal.classList.remove("active");
-    const toggleSidebar = () => {
-      sidebar.classList.toggle("active");
-      content.classList.toggle("active");
-    };
+    const toggleSidebar = () => { sidebar.classList.toggle("active"); content.classList.toggle("active"); };
     const showNotification = (message) => {
       const notification = document.createElement("div");
       notification.className = "notification";
@@ -322,36 +264,23 @@
       notifications.style.display = "block";
       setTimeout(() => {
         notification.remove();
-        if (!notifications.querySelector(".notification")) notifications.style.display = "none";
+        if (!notifications.children.length) notifications.style.display = "none";
       }, 5000);
     };
-    const debounce = (func, wait) => {
-      let timeout;
-      return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-      };
-    };
 
-    // Authentication State with Custom Claims
-    let userRole = null;
+    // Authentication & Roles
     onAuthStateChanged(auth, (user) => {
       showLoader();
       if (user) {
         user.getIdTokenResult().then(idTokenResult => {
           if (idTokenResult.claims.admin) {
-            userRole = idTokenResult.claims.role || "full"; // Default to "full" if no role
             showAdmin();
-            initializeAdminDashboard();
+            initializeAdminDashboard(idTokenResult.claims.role || "viewer");
           } else {
             signOut(auth);
             showLogin();
-            loginError.textContent = "Access denied. Admins only.";
+            document.getElementById("loginError").textContent = "Access denied. Admins only.";
           }
-          hideLoader();
-        }).catch(err => {
-          console.error("Auth error:", err);
-          showLogin();
           hideLoader();
         });
       } else {
@@ -360,75 +289,57 @@
       }
     });
 
-    // Login
     loginBtn.addEventListener("click", () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       showLoader();
       signInWithEmailAndPassword(auth, email, password)
-        .then(() => loginError.textContent = "")
         .catch(err => {
-          loginError.textContent = "Login failed: " + err.message;
+          document.getElementById("loginError").textContent = "Login failed: " + err.message;
           hideLoader();
         });
     });
 
-    // Logout
     logoutBtn.addEventListener("click", () => signOut(auth));
-
-    // Sidebar Toggle
     menuToggle.addEventListener("click", toggleSidebar);
 
-    // Sidebar Navigation
     document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        const sectionId = link.getAttribute('data-section');
         document.querySelectorAll('.sidebar nav ul li a').forEach(n => n.classList.remove("active"));
         document.querySelectorAll('.section').forEach(s => s.classList.remove("active"));
         link.classList.add("active");
-        document.getElementById(sectionId).classList.add("active");
+        document.getElementById(link.getAttribute('data-section')).classList.add("active");
         if (window.innerWidth <= 768) toggleSidebar();
       });
     });
 
     // Initialize Dashboard
-    function initializeAdminDashboard() {
+    function initializeAdminDashboard(role) {
       loadDashboardStats();
-      loadPaginatedData("products", "productsCards", 5, 1, sortProducts.value);
-      loadPaginatedData("orders", "ordersCards", 5, 1, sortOrders.value);
-      setupModalListeners();
-      setupSearch();
-      setupExport();
-      setupNotifications();
+      loadProducts();
+      loadOrders();
+      setupModalListeners(role);
+      setupSearchAndSort();
+      setupPagination();
       setupChart();
-      if (userRole === "viewer") {
-        document.querySelectorAll(".action-btn").forEach(btn => btn.disabled = true);
-      }
     }
 
-    // Dashboard Stats and Chart
+    // Dashboard Stats
     function loadDashboardStats() {
       showLoader();
-      const productsRef = collection(db, "products");
-      const ordersRef = collection(db, "orders");
-      onSnapshot(productsRef, (snap) => {
-        document.getElementById("totalProducts").textContent = snap.size;
-      });
-      onSnapshot(ordersRef, (snap) => {
+      onSnapshot(collection(db, "products"), snap => document.getElementById("totalProducts").textContent = snap.size);
+      onSnapshot(collection(db, "orders"), snap => {
         document.getElementById("totalOrders").textContent = snap.size;
         let totalRevenue = 0;
         const revenueData = [];
         snap.forEach(doc => {
           const order = doc.data();
           totalRevenue += order.amount || 0;
-          revenueData.push({ x: doc.id, y: order.amount || 0 });
+          revenueData.push({ x: doc.id, y: order.amount });
         });
         document.getElementById("totalRevenue").textContent = totalRevenue.toFixed(2);
         updateChart(revenueData);
-        hideLoader();
-      }, (err) => {
-        console.error("Stats error:", err);
         hideLoader();
       });
     }
@@ -437,289 +348,50 @@
       const ctx = document.getElementById("revenueChart").getContext("2d");
       window.revenueChart = new Chart(ctx, {
         type: "line",
-        data: { datasets: [{ label: "Revenue (PKR)", data: [], borderColor: "#e8b923", fill: false }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: "Orders" } }, y: { beginAtZero: true, title: { display: true, text: "Amount (PKR)" } } } }
+        data: { datasets: [{ label: "Revenue (PKR)", data: [], borderColor: "#d4a017", fill: false }] },
+        options: { scales: { x: { title: { display: true, text: "Orders" } }, y: { beginAtZero: true, title: { display: true, text: "Amount (PKR)" } } } }
       });
     }
 
     function updateChart(data) {
-      if (window.revenueChart) {
-        window.revenueChart.data.datasets[0].data = data;
-        window.revenueChart.update();
-      }
+      window.revenueChart.data.datasets[0].data = data;
+      window.revenueChart.update();
     }
 
-    // Image Upload
-    async function uploadImage(file) {
-      if (file.size > 5 * 1024 * 1024) throw new Error("Image must be less than 5MB");
-      const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      return getDownloadURL(storageRef);
-    }
-
-    // Paginated Data Loading
-    let productsPage = 1, ordersPage = 1;
-    let productCache = [], orderCache = [];
-    function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1, sortBy = "nameAsc", searchQuery = "") {
+    // Products Management
+    async function loadProducts(searchQuery = "", sortBy = "name") {
       showLoader();
-      const startAt = (page - 1) * perPage;
-      let q = collection(db, collectionName);
-      if (searchQuery) {
-        q = query(q, where(collectionName === "products" ? "name" : "orderId", ">=", searchQuery), where(collectionName === "products" ? "name" : "orderId", "<=", searchQuery + "\uf8ff"));
-      }
-      if (collectionName === "products") {
-        if (sortBy === "nameAsc") q = query(q, orderBy("name", "asc"));
-        else if (sortBy === "nameDesc") q = query(q, orderBy("name", "desc"));
-        else if (sortBy === "priceAsc") q = query(q, orderBy("price", "asc"));
-        else if (sortBy === "priceDesc") q = query(q, orderBy("price", "desc"));
-      } else {
-        if (sortBy === "idAsc") q = query(q, orderBy("orderId", "asc"));
-        else if (sortBy === "idDesc") q = query(q, orderBy("orderId", "desc"));
-        else if (sortBy === "amountAsc") q = query(q, orderBy("amount", "asc"));
-        else if (sortBy === "amountDesc") q = query(q, orderBy("amount", "desc"));
-      }
-      q = query(q, limit(perPage));
-      onSnapshot(q, (snap) => {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (collectionName === "products") productCache = data;
-        else orderCache = data;
-        data.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
-          if (collectionName === "products") {
-            card.innerHTML = `
-              <h4>${item.name}</h4>
-              <p><strong>Price:</strong> ${item.price.toFixed(2)} PKR</p>
-              <p><strong>Description:</strong> ${item.description || "N/A"}</p>
-              ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
-              <div class="actions">
-                <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
-              </div>
-            `;
-          } else {
-            card.innerHTML = `
-              <h4>Order #${item.orderId || item.id}</h4>
-              <p><strong>Customer:</strong> ${item.customerEmail || "Unknown"}</p>
-              <p><strong>Amount:</strong> ${item.amount.toFixed(2)} PKR</p>
-              <p><strong>Status:</strong> ${item.status || "Pending"}</p>
-              <div class="actions">
-                <button class="action-btn" data-id="${item.id}" data-status="${item.status || "Pending"}">Update Status</button>
-              </div>
-            `;
-          }
-          container.appendChild(card);
-        });
-        setupCardListeners();
-        updatePaginationControls(collectionName, page, snap.size, perPage);
-        hideLoader();
-      }, (err) => {
-        console.error("Data load error:", err);
-        hideLoader();
+      let q = query(collection(db, "products"), orderBy(sortBy), limit(perPage));
+      if (productsLastDoc && productsPageNum > 1) q = query(q, startAfter(productsLastDoc));
+      if (searchQuery) q = query(q, where("name", ">=", searchQuery), where("name", "<=", searchQuery + "\uf8ff"));
+      const snap = await getDocs(q);
+      productsCards.innerHTML = "";
+      snap.forEach(doc => {
+        const product = { id: doc.id, ...doc.data() };
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h4>${product.name}</h4>
+          <p><strong>Price:</strong> ${product.price.toFixed(2)} PKR</p>
+          <p><strong>Description:</strong> ${product.description}</p>
+          ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}">` : ""}
+          <div class="actions">
+            <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
+            <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
+          </div>
+        `;
+        productsCards.appendChild(card);
       });
+      productsLastDoc = snap.docs[snap.docs.length - 1];
+      productsPage.textContent = `Page ${productsPageNum}`;
+      prevProducts.disabled = productsPageNum === 1;
+      setupCardListeners();
+      hideLoader();
     }
 
-    function updatePaginationControls(collectionName, page, totalItems, perPage) {
-      const prevBtn = document.getElementById(`prev${collectionName}`);
-      const nextBtn = document.getElementById(`next${collectionName}`);
-      const pageSpan = document.getElementById(`page${collectionName}`);
-      prevBtn.disabled = page === 1;
-      nextBtn.disabled = totalItems < perPage; // Approximate; use a count for accuracy
-      pageSpan.textContent = `Page ${page}`;
-    }
-
-    // Search Functionality
-    function setupSearch() {
-      productSearch.addEventListener("input", debounce((e) => {
-        productsPage = 1;
-        loadPaginatedData("products", "productsCards", 5, productsPage, sortProducts.value, e.target.value);
-      }, 500));
-      orderSearch.addEventListener("input", debounce((e) => {
-        ordersPage = 1;
-        loadPaginatedData("orders", "ordersCards", 5, ordersPage, sortOrders.value, e.target.value);
-      }, 500));
-    }
-
-    // Product and Order Management
-    function setupModalListeners() {
-      addProductBtn.addEventListener("click", () => {
-        addProductForm.reset();
-        openModal(addProductModal);
-      });
-      closeAddModal.addEventListener("click", () => closeModal(addProductModal));
-      closeEditModal.addEventListener("click", () => closeModal(editProductModal));
-      closeOrderModal.addEventListener("click", () => closeModal(updateOrderModal));
-
-      addProductForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const name = document.getElementById("addName").value;
-        const price = parseFloat(document.getElementById("addPrice").value);
-        const description = document.getElementById("addDesc").value;
-        const file = document.getElementById("addImage").files[0];
-        if (price <= 0) {
-          alert("Price must be positive.");
-          return;
-        }
-        showLoader();
-        try {
-          const imageUrl = file ? await uploadImage(file) : null;
-          const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl;
-          await addDoc(collection(db, "products"), productData);
-          closeModal(addProductModal);
-          showNotification("Product added successfully!");
-          loadPaginatedData("products", "productsCards", 5, productsPage, sortProducts.value);
-        } catch (err) {
-          alert("Failed to add product: " + err.message);
-        }
-        hideLoader();
-      });
-
-      editProductForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const id = document.getElementById("editId").value;
-        const name = document.getElementById("editName").value;
-        const price = parseFloat(document.getElementById("editPrice").value);
-        const description = document.getElementById("editDesc").value;
-        const file = document.getElementById("editImage").files[0];
-        if (price <= 0) {
-          alert("Price must be positive.");
-          return;
-        }
-        showLoader();
-        try {
-          const productData = { name, price, description };
-          if (file) productData.imageUrl = await uploadImage(file);
-          await updateDoc(doc(db, "products", id), productData);
-          closeModal(editProductModal);
-          showNotification("Product updated successfully!");
-          loadPaginatedData("products", "productsCards", 5, productsPage, sortProducts.value);
-        } catch (err) {
-          alert("Failed to update product: " + err.message);
-        }
-        hideLoader();
-      });
-
-      updateOrderForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const id = document.getElementById("orderId").value;
-        const status = document.getElementById("orderStatus").value;
-        showLoader();
-        try {
-          await updateDoc(doc(db, "orders", id), { status });
-          closeModal(updateOrderModal);
-          showNotification("Order status updated successfully!");
-          loadPaginatedData("orders", "ordersCards", 5, ordersPage, sortOrders.value);
-        } catch (err) {
-          alert("Failed to update order status: " + err.message);
-        }
-        hideLoader();
-      });
-    }
-
-    function setupCardListeners() {
-      document.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const id = e.target.getAttribute("data-id");
-          const productRef = doc(db, "products", id);
-          showLoader();
-          getDoc(productRef).then(docSnap => {
-            const product = docSnap.data();
-            document.getElementById("editId").value = id;
-            document.getElementById("editName").value = product.name;
-            document.getElementById("editPrice").value = product.price;
-            document.getElementById("editDesc").value = product.description || "";
-            document.getElementById("editImage").value = ""; // Clear file input
-            openModal(editProductModal);
-            hideLoader();
-          });
-        });
-      });
-
-      document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const id = e.target.getAttribute("data-id");
-          if (confirm("Are you sure you want to delete this product?")) {
-            showLoader();
-            deleteDoc(doc(db, "products", id))
-              .then(() => {
-                showNotification("Product deleted successfully!");
-                loadPaginatedData("products", "productsCards", 5, productsPage, sortProducts.value);
-              })
-              .catch(err => alert("Failed to delete product: " + err.message))
-              .finally(() => hideLoader());
-          }
-        });
-      });
-
-      document.querySelectorAll(".action-btn:not(.edit-btn):not(.delete-btn)").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const id = e.target.getAttribute("data-id");
-          const status = e.target.getAttribute("data-status");
-          document.getElementById("orderId").value = id;
-          document.getElementById("orderStatus").value = status;
-          openModal(updateOrderModal);
-        });
-      });
-    }
-
-    // Pagination Controls
-    prevProducts.addEventListener("click", () => {
-      if (productsPage > 1) loadPaginatedData("products", "productsCards", 5, --productsPage, sortProducts.value, productSearch.value);
-    });
-    nextProducts.addEventListener("click", () => loadPaginatedData("products", "productsCards", 5, ++productsPage, sortProducts.value, productSearch.value));
-    sortProducts.addEventListener("change", (e) => loadPaginatedData("products", "productsCards", 5, productsPage = 1, e.target.value, productSearch.value));
-    prevOrders.addEventListener("click", () => {
-      if (ordersPage > 1) loadPaginatedData("orders", "ordersCards", 5, --ordersPage, sortOrders.value, orderSearch.value);
-    });
-    nextOrders.addEventListener("click", () => loadPaginatedData("orders", "ordersCards", 5, ++ordersPage, sortOrders.value, orderSearch.value));
-    sortOrders.addEventListener("change", (e) => loadPaginatedData("orders", "ordersCards", 5, ordersPage = 1, e.target.value, orderSearch.value));
-
-    // Export Data
-    function setupExport() {
-      exportProductsBtn.addEventListener("click", () => exportData("products", "products.csv"));
-      exportOrdersBtn.addEventListener("click", () => exportData("orders", "orders.csv"));
-    }
-
-    function exportData(collectionName, filename) {
+    // Orders Management
+    async function loadOrders(searchQuery = "", sortBy = "orderId") {
       showLoader();
-      onSnapshot(collection(db, collectionName), (snap) => {
-        const data = snap.docs.map(doc => doc.data());
-        const csv = convertToCSV(data);
-        downloadCSV(csv, filename);
-        hideLoader();
-      });
-    }
-
-    function convertToCSV(data) {
-      const headers = Object.keys(data[0] || {});
-      const csv = [headers.join(",")];
-      data.forEach(obj => csv.push(headers.map(header => obj[header] || "").join(",")));
-      return csv.join("\n");
-    }
-
-    function downloadCSV(csv, filename) {
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    }
-
-    // Real-Time Notifications
-    function setupNotifications() {
-      onSnapshot(collection(db, "orders"), (snap) => {
-        snap.docChanges().forEach(change => {
-          if (change.type === "added") {
-            showNotification(`New order #${change.doc.data().orderId || change.doc.id} received!`);
-          }
-        });
-      });
-    }
-  </script>
-</body>
-</html>
+      let q = query(collection(db, "orders"), orderBy(sortBy), limit(perPage));
+      if (ordersLastDoc && ordersPageNum > 1) q = query(q, startAfter(ordersLastDoc));
+      if (searchQuery) q = query(q, where("orderId", ">=", searchQu
