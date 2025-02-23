@@ -14,7 +14,7 @@
     .login-card h2 { font-size: 1.75rem; font-weight: 500; margin-bottom: 2rem; color: #2c3e50; }
     .login-container input { width: 100%; padding: 0.85rem; margin: 0.75rem 0; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; transition: border-color 0.3s; }
     .login-container input:focus { border-color: #d4a017; outline: none; }
-    .login-container button, .action-btn { width: 100%; background: #d4a017; border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
+    .login-container button, .action-btn { background: #d4a017; border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
     .login-container button:hover, .action-btn:hover { background: #b58900; }
     .error-message { color: #c0392b; margin-top: 1rem; font-size: 0.9rem; font-weight: 400; }
     .admin-container { flex-direction: row; }
@@ -39,7 +39,8 @@
     .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e0e4e8; }
     .table th { background: #f7f9fa; font-weight: 500; color: #2c3e50; }
-    .table td button { width: auto; padding: 0.5rem 1rem; margin-right: 0.5rem; font-size: 0.9rem; }
+    .table td.actions { white-space: nowrap; min-width: 160px; }
+    .table td button { width: auto; padding: 0.5rem 1rem; margin: 0 0.25rem 0 0; font-size: 0.9rem; display: inline-block; }
     .delete-btn { background: #c0392b; }
     .delete-btn:hover { background: #a73125; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
@@ -59,7 +60,8 @@
       .sidebar nav ul li a { padding: 0.75rem 1rem; font-size: 0.95rem; }
       .sidebar footer { padding: 1rem; }
       .content { margin-left: 0; padding: 1.5rem; }
-      .table { font-size: 0.9rem; }
+      .table td.actions { min-width: 0; }
+      .table td button { padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0.2rem 0; display: block; width: 100%; }
     }
   </style>
 </head>
@@ -115,7 +117,7 @@
               <th>Name</th>
               <th>Price (PKR)</th>
               <th>Description</th>
-              <th>Actions</th>
+              <th class="actions">Actions</th>
             </tr>
           </thead>
           <tbody id="productsList"></tbody>
@@ -141,7 +143,7 @@
   <!-- Product Modals -->
   <div id="addProductModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" id="closeAddModal">&times;</button>
+      <button class="close-btn" id="closeAddModal">×</button>
       <h3>Add Product</h3>
       <form id="addProductForm">
         <label for="addName">Name</label>
@@ -156,7 +158,7 @@
   </div>
   <div id="editProductModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" id="closeEditModal">&times;</button>
+      <button class="close-btn" id="closeEditModal">×</button>
       <h3>Edit Product</h3>
       <form id="editProductForm">
         <input type="hidden" id="editId" />
@@ -175,7 +177,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -312,7 +314,7 @@
             <td>${product.name}</td>
             <td>${product.price.toFixed(2)}</td>
             <td>${product.description || "N/A"}</td>
-            <td>
+            <td class="actions">
               <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
               <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
             </td>
