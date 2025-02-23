@@ -1,41 +1,7 @@
 <!DOCTYPE html>
 
 <body>
-  <div class="admin-container">
-    <aside class="sidebar">
-      <header>
-        <h2>Admin Panel</h2>
-      </header>
-      <nav>
-        <ul>
-          <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
-          <li><a href="#" data-section="products">Products</a></li>
-          <li><a href="#" data-section="orders">Orders</a></li>
-          <li><a href="#" data-section="contacts">Contacts</a></li>
-          <li><a href="#" data-section="subscribers">Subscribers</a></li>
-        </ul>
-      </nav>
-      <footer>
-        <button id="logoutBtn">Logout</button>
-      </footer>
-    </aside>
-    <main class="content">
-      <section id="dashboard" class="section active">
-        <h2>Dashboard</h2>
-        <div class="stats">
-          <div class="stat-item"><span id="totalProducts">0</span> Products</div>
-          <div class="stat-item"><span id="totalOrders">0</span> Orders</div>
-          <div class="stat-item"><span id="totalContacts">0</span> Contacts</div>
-          <div class="stat-item"><span id="totalSubscribers">0</span> Subscribers</div>
-        </div>
-      </section>
-      <section id="products" class="section">
-        <div class="section-header">
-          <h2>Products</h2>
-          <button id="addProductBtn">Add New Product</button>
-        </div>
-        <div id="productsList">
-          <!-- Products will be rendered here -->
+  
         </div>
       </section>
       <section id="orders" class="section">
@@ -77,27 +43,7 @@
     </div>
   </div>
 
-  <!-- Add Product Modal -->
-  <div id="addProductModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addProductTitle">
-    <div class="modal-content">
-      <button class="close-btn" id="closeAddModal">&times;</button>
-      <h2 id="addProductTitle">Add New Product</h2>
-      <form id="addProductForm">
-        <label for="addProductName">Name:</label>
-        <input type="text" id="addProductName" required />
-        <label for="addProductPrice">Price (PKR):</label>
-        <input type="number" id="addProductPrice" step="0.01" required />
-        <label for="addProductDesc">Description:</label>
-        <textarea id="addProductDesc" required></textarea>
-        <label for="addProductImage">Image URL:</label>
-        <input type="url" id="addProductImage" required />
-        <button type="submit">Add Product</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Loader -->
-  <div id="loader" class="loader" aria-hidden="true">Loading...</div>
+  
 
   
 </body>
