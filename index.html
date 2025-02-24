@@ -51,6 +51,10 @@
     .action-btn.delete-btn:hover { background: #a73125; }
     .export-btn { background: #3498db; margin-left: 1rem; }
     .export-btn:hover { background: #2980b9; }
+    .pagination { margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; }
+    .pagination button { background: #d4a017; border: none; color: #fff; padding: 0.7rem 1.2rem; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
+    .pagination button:hover { background: #b58900; }
+    .pagination button:disabled { background: #bdc3c7; cursor: not-allowed; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
     .modal-content { background: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
@@ -77,6 +81,8 @@
       .card button { padding: 0.6rem; font-size: 0.8rem; }
       .search-bar input { max-width: 100%; }
       .chart-container { max-width: 100%; }
+      .pagination { flex-direction: column; gap: 0.5rem; }
+      .pagination button { width: 100%; }
     }
   </style>
 </head>
@@ -132,17 +138,23 @@
         <div class="search-bar">
           <input type="text" id="productSearch" placeholder="Search products..." />
         </div>
-        <button class="action-btn" id="addProductBtn">Add Product</button>
-        <button class="action-btn export-btn" id="exportProductsBtn">Export Products</button>
+        <div class="actions">
+          <button class="action-btn" id="addProductBtn">Add Product</button>
+          <button class="action-btn export-btn" id="exportProductsBtn">Export Products</button>
+        </div>
         <div class="cards-grid" id="productsCards"></div>
+        <div class="pagination" id="productsPagination"></div>
       </section>
       <section id="orders" class="section">
         <h2>Orders</h2>
         <div class="search-bar">
           <input type="text" id="orderSearch" placeholder="Search orders..." />
         </div>
-        <button class="action-btn export-btn" id="exportOrdersBtn">Export Orders</button>
+        <div class="actions">
+          <button class="action-btn export-btn" id="exportOrdersBtn">Export Orders</button>
+        </div>
         <div class="cards-grid" id="ordersCards"></div>
+        <div class="pagination" id="ordersPagination"></div>
       </section>
     </main>
   </div>
@@ -159,8 +171,8 @@
         <input type="number" id="addPrice" step="0.01" required />
         <label for="addDesc">Description</label>
         <textarea id="addDesc" required></textarea>
-        <label for="addImage">Image (URL)</label>
-        <input type="url" id="addImage" required />
+        <label for="addImage">Image</label>
+        <input type="file" id="addImage" accept="image/*" />
         <button type="submit" class="action-btn">Add Product</button>
       </form>
     </div>
@@ -177,8 +189,8 @@
         <input type="number" id="editPrice" step="0.01" required />
         <label for="editDesc">Description</label>
         <textarea id="editDesc" required></textarea>
-        <label for="editImage">Image (URL)</label>
-        <input type="url" id="editImage" required />
+        <label for="editImage">Image</label>
+        <input type="file" id="editImage" accept="image/*" />
         <button type="submit" class="action-btn">Save Changes</button>
       </form>
     </div>
@@ -207,7 +219,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where, orderBy, limit, startAfter, endBefore, getCountFromServer } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
@@ -253,6 +265,12 @@
     const ordersCards = document.getElementById("ordersCards");
     const exportProductsBtn = document.getElementById("exportProductsBtn");
     const exportOrdersBtn = document.getElementById("exportOrdersBtn");
+    const productsPagination = document.getElementById("productsPagination");
+    const ordersPagination = document.getElementById("ordersPagination");
+
+    // State
+    const ITEMS_PER_PAGE = 5;
+    let productLastDoc = null, orderLastDoc = null, productSortField = "name", orderSortField = "orderId", productDirection = "asc", orderDirection = "asc";
 
     // Utility Functions
     const showLoader = () => loader.style.display = "block";
@@ -290,14 +308,16 @@
     onAuthStateChanged(auth, (user) => {
       showLoader();
       if (user) {
-        if (user.email === "admin@zindagiperfumes.com") { // Replace with custom claims later
-          showAdmin();
-          initializeAdminDashboard();
-        } else {
-          signOut(auth);
-          showLogin();
-          loginError.textContent = "Access denied. Admins only.";
-        }
+        user.getIdTokenResult().then(idTokenResult => {
+          if (idTokenResult.claims.admin) {
+            showAdmin();
+            initializeAdminDashboard();
+          } else {
+            signOut(auth);
+            showLogin();
+            loginError.textContent = "Access denied. Admins only.";
+          }
+        });
       } else {
         showLogin();
       }
@@ -339,13 +359,14 @@
     // Initialize Dashboard
     function initializeAdminDashboard() {
       loadDashboardStats();
-      loadProducts();
-      loadOrders();
+      loadPaginatedProducts(1, productSortField, productDirection);
+      loadPaginatedOrders(1, orderSortField, orderDirection);
       setupModalListeners();
       setupSearch();
       setupExport();
       setupNotifications();
       setupChart();
+      setupPagination();
     }
 
     // Dashboard Stats and Chart
@@ -390,73 +411,93 @@
       }
     }
 
-    // Load Products with Search
-    function loadProducts(searchQuery = "") {
+    // Paginated and Sorted Products
+    async function loadPaginatedProducts(page, sortField = "name", direction = "asc") {
       showLoader();
-      let productsQuery = collection(db, "products");
-      if (searchQuery) {
-        productsQuery = query(productsQuery, where("name", ">=", searchQuery), where("name", "<=", searchQuery + "\uf8ff"));
+      const productsRef = collection(db, "products");
+      const countQuery = await getCountFromServer(productsRef);
+      const totalItems = countQuery.data().count;
+      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+      let productsQuery = query(productsRef, orderBy(sortField, direction), limit(ITEMS_PER_PAGE));
+      if (productLastDoc && page > 1) {
+        productsQuery = query(productsRef, orderBy(sortField, direction), startAfter(productLastDoc), limit(ITEMS_PER_PAGE));
       }
       onSnapshot(productsQuery, (snap) => {
         productsCards.innerHTML = "";
-        snap.forEach(doc => {
+        snap.forEach((doc, index) => {
+          if (index === snap.docs.length - 1) productLastDoc = doc;
           const product = { id: doc.id, ...doc.data() };
-          if (product.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-              <h4>${product.name}</h4>
-              <p><strong>Price:</strong> ${product.price.toFixed(2)} PKR</p>
-              <p><strong>Description:</strong> ${product.description || "N/A"}</p>
-              ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
-              <div class="actions">
-                <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
-              </div>
-            `;
-            productsCards.appendChild(card);
-          }
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h4>${product.name}</h4>
+            <p><strong>Price:</strong> ${product.price.toFixed(2)} PKR</p>
+            <p><strong>Description:</strong> ${product.description || "N/A"}</p>
+            ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
+            <div class="actions">
+              <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
+              <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
+            </div>
+          `;
+          productsCards.appendChild(card);
         });
         setupCardListeners();
+        renderPagination("products", page, totalPages);
+        hideLoader();
+      }, (err) => {
+        console.error("Products error:", err);
         hideLoader();
       });
     }
 
-    // Load Orders with Search and Status Update
-    function loadOrders(searchQuery = "") {
+    // Paginated and Sorted Orders
+    async function loadPaginatedOrders(page, sortField = "orderId", direction = "asc") {
       showLoader();
-      let ordersQuery = collection(db, "orders");
-      if (searchQuery) {
-        ordersQuery = query(ordersQuery, where("orderId", ">=", searchQuery), where("orderId", "<=", searchQuery + "\uf8ff"));
+      const ordersRef = collection(db, "orders");
+      const countQuery = await getCountFromServer(ordersRef);
+      const totalItems = countQuery.data().count;
+      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+      let ordersQuery = query(ordersRef, orderBy(sortField, direction), limit(ITEMS_PER_PAGE));
+      if (orderLastDoc && page > 1) {
+        ordersQuery = query(ordersRef, orderBy(sortField, direction), startAfter(orderLastDoc), limit(ITEMS_PER_PAGE));
       }
       onSnapshot(ordersQuery, (snap) => {
         ordersCards.innerHTML = "";
-        snap.forEach(doc => {
+        snap.forEach((doc, index) => {
+          if (index === snap.docs.length - 1) orderLastDoc = doc;
           const order = { id: doc.id, ...doc.data() };
-          if ((order.orderId || order.id).toLowerCase().includes(searchQuery.toLowerCase())) {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-              <h4>Order #${order.orderId || order.id}</h4>
-              <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
-              <p><strong>Amount:</strong> ${order.amount.toFixed(2)} PKR</p>
-              <p><strong>Status:</strong> ${order.status || "Pending"}</p>
-              <div class="actions">
-                <button class="action-btn" data-id="${order.id}" data-status="${order.status || "Pending"}">Update Status</button>
-              </div>
-            `;
-            ordersCards.appendChild(card);
-          }
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h4>Order #${order.orderId || order.id}</h4>
+            <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
+            <p><strong>Amount:</strong> ${order.amount.toFixed(2)} PKR</p>
+            <p><strong>Status:</strong> ${order.status || "Pending"}</p>
+            <div class="actions">
+              <button class="action-btn" data-id="${order.id}" data-status="${order.status || "Pending"}">Update Status</button>
+            </div>
+          `;
+          ordersCards.appendChild(card);
         });
         setupCardListeners();
+        renderPagination("orders", page, totalPages);
+        hideLoader();
+      }, (err) => {
+        console.error("Orders error:", err);
         hideLoader();
       });
     }
 
     // Search Functionality
     function setupSearch() {
-      productSearch.addEventListener("input", debounce((e) => loadProducts(e.target.value), 300));
-      orderSearch.addEventListener("input", debounce((e) => loadOrders(e.target.value), 300));
+      productSearch.addEventListener("input", debounce((e) => {
+        productLastDoc = null; // Reset pagination for search
+        loadPaginatedProducts(1, productSortField, productDirection, e.target.value);
+      }, 300));
+      orderSearch.addEventListener("input", debounce((e) => {
+        orderLastDoc = null; // Reset pagination for search
+        loadPaginatedOrders(1, orderSortField, orderDirection, e.target.value);
+      }, 300));
     }
 
     function debounce(func, wait) {
@@ -467,7 +508,7 @@
       };
     }
 
-    // Product and Order Management
+    // Product and Order Management with Image Upload
     function setupModalListeners() {
       addProductBtn.addEventListener("click", () => {
         addProductForm.reset();
@@ -482,18 +523,24 @@
         const name = document.getElementById("addName").value;
         const price = parseFloat(document.getElementById("addPrice").value);
         const description = document.getElementById("addDesc").value;
-        const imageUrl = document.getElementById("addImage").value;
+        const imageFile = document.getElementById("addImage").files[0];
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
         showLoader();
         try {
-          const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl; // Use URL for now; replace with upload later
-          await addDoc(collection(db, "products"), productData);
+          let imageUrl = "";
+          if (imageFile) {
+            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+            await uploadBytes(storageRef, imageFile);
+            imageUrl = await getDownloadURL(storageRef);
+          }
+          await addDoc(collection(db, "products"), { name, price, description, imageUrl });
           closeModal(addProductModal);
           showNotification("Product added successfully!");
+          productLastDoc = null; // Reset pagination
+          loadPaginatedProducts(1, productSortField, productDirection);
         } catch (err) {
           alert("Failed to add product: " + err.message);
         }
@@ -506,18 +553,24 @@
         const name = document.getElementById("editName").value;
         const price = parseFloat(document.getElementById("editPrice").value);
         const description = document.getElementById("editDesc").value;
-        const imageUrl = document.getElementById("editImage").value;
+        const imageFile = document.getElementById("editImage").files[0];
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
         showLoader();
         try {
-          const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl;
-          await updateDoc(doc(db, "products", id), productData);
+          let imageUrl = "";
+          if (imageFile) {
+            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+            await uploadBytes(storageRef, imageFile);
+            imageUrl = await getDownloadURL(storageRef);
+          }
+          await updateDoc(doc(db, "products", id), { name, price, description, imageUrl: imageUrl || document.getElementById("editImage").dataset.previousUrl });
           closeModal(editProductModal);
           showNotification("Product updated successfully!");
+          productLastDoc = null; // Reset pagination
+          loadPaginatedProducts(1, productSortField, productDirection);
         } catch (err) {
           alert("Failed to update product: " + err.message);
         }
@@ -533,6 +586,8 @@
           await updateDoc(doc(db, "orders", id), { status });
           closeModal(updateOrderModal);
           showNotification("Order status updated successfully!");
+          orderLastDoc = null; // Reset pagination
+          loadPaginatedOrders(1, orderSortField, orderDirection);
         } catch (err) {
           alert("Failed to update order status: " + err.message);
         }
@@ -552,7 +607,8 @@
             document.getElementById("editName").value = product.name;
             document.getElementById("editPrice").value = product.price;
             document.getElementById("editDesc").value = product.description || "";
-            document.getElementById("editImage").value = product.imageUrl || "";
+            document.getElementById("editImage").dataset.previousUrl = product.imageUrl || "";
+            document.getElementById("editImage").value = ""; // Clear file input
             openModal(editProductModal);
             hideLoader();
           });
@@ -565,7 +621,11 @@
           if (confirm("Are you sure you want to delete this product?")) {
             showLoader();
             deleteDoc(doc(db, "products", id))
-              .then(() => showNotification("Product deleted successfully!"))
+              .then(() => {
+                showNotification("Product deleted successfully!");
+                productLastDoc = null; // Reset pagination
+                loadPaginatedProducts(1, productSortField, productDirection);
+              })
               .catch(err => alert("Failed to delete product: " + err.message))
               .finally(() => hideLoader());
           }
@@ -628,58 +688,97 @@
       });
     }
 
-    // Pagination and Sorting (Placeholder for simplicity)
-    function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1) {
-      showLoader();
-      const startAt = (page - 1) * perPage;
-      onSnapshot(collection(db, collectionName), (snap) => {
-        const data = [];
-        snap.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
-        const paginatedData = data.slice(startAt, startAt + perPage);
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        paginatedData.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
-          if (collectionName === "products") {
-            card.innerHTML = `
-              <h4>${item.name}</h4>
-              <p><strong>Price:</strong> ${item.price.toFixed(2)} PKR</p>
-              <p><strong>Description:</strong> ${item.description || "N/A"}</p>
-              ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
-              <div class="actions">
-                <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
-              </div>
-            `;
-          } else {
-            card.innerHTML = `
-              <h4>Order #${item.orderId || item.id}</h4>
-              <p><strong>Customer:</strong> ${item.customerEmail || "Unknown"}</p>
-              <p><strong>Amount:</strong> ${item.amount.toFixed(2)} PKR</p>
-              <p><strong>Status:</strong> ${item.status || "Pending"}</p>
-              <div class="actions">
-                <button class="action-btn" data-id="${item.id}" data-status="${item.status || "Pending"}">Update Status</button>
-              </div>
-            `;
-          }
-          container.appendChild(card);
-        });
-        setupCardListeners();
-        hideLoader();
-      });
+    // Pagination
+    function setupPagination() {
+      document.getElementById("productsPagination").addEventListener("click", (e) => handlePagination(e, "products"));
+      document.getElementById("ordersPagination").addEventListener("click", (e) => handlePagination(e, "orders"));
     }
 
-    // Initialize with Pagination (Simple implementation)
-    loadPaginatedData("products", "productsCards");
-    loadPaginatedData("orders", "ordersCards");
+    function renderPagination(type, currentPage, totalPages) {
+      const pagination = document.getElementById(`${type}Pagination`);
+      pagination.innerHTML = "";
+      if (totalPages <= 1) return;
 
-    // User Roles (Placeholder for custom claims)
-    // Replace email check with:
+      const prevBtn = document.createElement("button");
+      prevBtn.textContent = "Previous";
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.dataset.type = type;
+      prevBtn.dataset.action = "prev";
+      pagination.appendChild(prevBtn);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement("button");
+        pageBtn.textContent = i;
+        pageBtn.disabled = i === currentPage;
+        pageBtn.dataset.type = type;
+        pageBtn.dataset.page = i;
+        pagination.appendChild(pageBtn);
+      }
+
+      const nextBtn = document.createElement("button");
+      nextBtn.textContent = "Next";
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.dataset.type = type;
+      nextBtn.dataset.action = "next";
+      pagination.appendChild(nextBtn);
+    }
+
+    function handlePagination(e, type) {
+      const target = e.target;
+      if (!target.dataset.type || target.dataset.type !== type) return;
+      let page = parseInt(document.querySelector(`#${type}Pagination button:not([disabled]):not([data-action])`)?.dataset.page) || 1;
+      if (target.dataset.action === "prev") page--;
+      else if (target.dataset.action === "next") page++;
+      else page = parseInt(target.dataset.page);
+      if (type === "products") {
+        loadPaginatedProducts(page, productSortField, productDirection);
+      } else {
+        loadPaginatedOrders(page, orderSortField, orderDirection);
+      }
+    }
+
+    // Sorting
+    function setupSorting() {
+      // Add sort buttons or dropdowns in the UI for products and orders
+      // Example: Add to products section header
+      /*
+      <div class="sort-bar">
+        <select id="productSort" onchange="sortProducts(this.value)">
+          <option value="name,asc">Name (A-Z)</option>
+          <option value="name,desc">Name (Z-A)</option>
+          <option value="price,asc">Price (Low-High)</option>
+          <option value="price,desc">Price (High-Low)</option>
+        </select>
+      </div>
+      */
+    }
+
+    function sortProducts(value) {
+      const [field, direction] = value.split(",");
+      productSortField = field;
+      productDirection = direction;
+      productLastDoc = null; // Reset pagination
+      loadPaginatedProducts(1, productSortField, productDirection);
+    }
+
+    // Firestore Security Rules (Update in Firebase Console)
     /*
-    user.getIdTokenResult().then(idTokenResult => {
-      if (idTokenResult.claims.admin) { ... }
-    });
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /{collection}/{id} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null && request.auth.token.admin == true;
+        }
+        match /products/{id} {
+          allow read, write: if request.auth != null && request.auth.token.admin == true;
+        }
+        match /orders/{id} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null && request.auth.token.admin == true;
+        }
+      }
+    }
     */
   </script>
 </body>
