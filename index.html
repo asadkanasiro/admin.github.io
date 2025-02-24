@@ -148,6 +148,7 @@
   </div>
 
   <!-- Product Modals -->
+  <!-- Add Product Modal: uses a file input for image upload -->
   <div id="addProductModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeAddModal">×</button>
@@ -159,12 +160,14 @@
         <input type="number" id="addPrice" step="0.01" required />
         <label for="addDesc">Description</label>
         <textarea id="addDesc" required></textarea>
-        <label for="addImage">Image (URL)</label>
-        <input type="url" id="addImage" required />
+        <label for="addImageFile">Image</label>
+        <input type="file" id="addImageFile" accept="image/*" required />
         <button type="submit" class="action-btn">Add Product</button>
       </form>
     </div>
   </div>
+
+  <!-- Edit Product Modal: file input for new image (optional) plus hidden field to store current image URL -->
   <div id="editProductModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeEditModal">×</button>
@@ -177,8 +180,10 @@
         <input type="number" id="editPrice" step="0.01" required />
         <label for="editDesc">Description</label>
         <textarea id="editDesc" required></textarea>
-        <label for="editImage">Image (URL)</label>
-        <input type="url" id="editImage" required />
+        <!-- Hidden field to store current image URL -->
+        <input type="hidden" id="currentImageUrl" />
+        <label for="editImageFile">Upload New Image (optional)</label>
+        <input type="file" id="editImageFile" accept="image/*" />
         <button type="submit" class="action-btn">Save Changes</button>
       </form>
     </div>
@@ -209,7 +214,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getDatabase, ref, onValue, push, update, remove, get, query, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-    import { getStorage } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     // New Firebase configuration using Realtime Database and Storage
@@ -490,7 +495,7 @@
       };
     }
 
-    // Product and Order Management using Realtime Database
+    // Product and Order Management using Realtime Database and Storage
     function setupModalListeners() {
       addProductBtn.addEventListener("click", () => {
         addProductForm.reset();
@@ -500,20 +505,29 @@
       closeEditModal.addEventListener("click", () => closeModal(editProductModal));
       closeOrderModal.addEventListener("click", () => closeModal(updateOrderModal));
 
+      // Add Product: Upload file from file input then push data with download URL
       addProductForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("addName").value;
         const price = parseFloat(document.getElementById("addPrice").value);
         const description = document.getElementById("addDesc").value;
-        const imageUrl = document.getElementById("addImage").value;
+        const imageFile = document.getElementById("addImageFile").files[0];
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
+        if (!imageFile) {
+          alert("Please select an image file.");
+          return;
+        }
         showLoader();
         try {
-          const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl;
+          // Upload image file to Firebase Storage
+          const imageStorageRef = storageRef(storage, 'productsImages/' + Date.now() + '_' + imageFile.name);
+          await uploadBytes(imageStorageRef, imageFile);
+          const downloadURL = await getDownloadURL(imageStorageRef);
+          
+          const productData = { name, price, description, imageUrl: downloadURL };
           await push(ref(db, "products"), productData);
           closeModal(addProductModal);
           showNotification("Product added successfully!");
@@ -523,21 +537,28 @@
         hideLoader();
       });
 
+      // Edit Product: If a new file is selected, upload it; otherwise keep the current image URL.
       editProductForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const id = document.getElementById("editId").value;
         const name = document.getElementById("editName").value;
         const price = parseFloat(document.getElementById("editPrice").value);
         const description = document.getElementById("editDesc").value;
-        const imageUrl = document.getElementById("editImage").value;
+        const currentImageUrl = document.getElementById("currentImageUrl").value;
+        const imageFile = document.getElementById("editImageFile").files[0];
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
         showLoader();
         try {
-          const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl;
+          let imageUrl = currentImageUrl;
+          if (imageFile) {
+            const imageStorageRef = storageRef(storage, 'productsImages/' + Date.now() + '_' + imageFile.name);
+            await uploadBytes(imageStorageRef, imageFile);
+            imageUrl = await getDownloadURL(imageStorageRef);
+          }
+          const productData = { name, price, description, imageUrl };
           await update(ref(db, "products/" + id), productData);
           closeModal(editProductModal);
           showNotification("Product updated successfully!");
@@ -575,7 +596,7 @@
             document.getElementById("editName").value = product.name;
             document.getElementById("editPrice").value = product.price;
             document.getElementById("editDesc").value = product.description || "";
-            document.getElementById("editImage").value = product.imageUrl || "";
+            document.getElementById("currentImageUrl").value = product.imageUrl || "";
             openModal(editProductModal);
             hideLoader();
           });
@@ -651,7 +672,6 @@
         if (orders) {
           Object.keys(orders).forEach(id => {
             const order = orders[id];
-            // For simplicity, notify for every order loaded.
             showNotification(`New order #${order.orderId || id} received!`);
           });
         }
