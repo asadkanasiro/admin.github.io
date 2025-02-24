@@ -205,14 +205,14 @@
   <div id="loader" class="loader">Loading...</div>
   <div id="notifications" class="notifications"></div>
 
-  <!-- Firebase and App Scripts (First Instance) -->
+  <!-- Firebase and App Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
+    import { getDatabase, ref, onValue, push, update, remove, get, query, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-    // New Firebase configuration
+    // New Firebase configuration using Realtime Database and Storage
     const firebaseConfig = {
       apiKey: "AIzaSyAYQXMf4rMIYP-S0Sd6eDZFWepJFutjRRs",
       authDomain: "lion-s-life-544b5.firebaseapp.com",
@@ -225,7 +225,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
     const auth = getAuth(app);
     const storage = getStorage(app);
 
@@ -351,23 +351,30 @@
       setupChart();
     }
 
-    // Dashboard Stats and Chart
+    // Dashboard Stats and Chart using Realtime Database
     function loadDashboardStats() {
       showLoader();
-      const productsRef = collection(db, "products");
-      const ordersRef = collection(db, "orders");
-      onSnapshot(productsRef, (snap) => {
-        document.getElementById("totalProducts").textContent = snap.size;
+      const productsRef = ref(db, "products");
+      const ordersRef = ref(db, "orders");
+      onValue(productsRef, (snapshot) => {
+        const data = snapshot.val();
+        const count = data ? Object.keys(data).length : 0;
+        document.getElementById("totalProducts").textContent = count;
       });
-      onSnapshot(ordersRef, (snap) => {
-        document.getElementById("totalOrders").textContent = snap.size;
+      onValue(ordersRef, (snapshot) => {
+        const orders = snapshot.val();
+        const count = orders ? Object.keys(orders).length : 0;
+        document.getElementById("totalOrders").textContent = count;
         let totalRevenue = 0;
         const revenueData = [];
-        snap.forEach(doc => {
-          const order = doc.data();
-          totalRevenue += order.amount || 0;
-          revenueData.push({ x: doc.id, y: order.amount || 0 });
-        });
+        if (orders) {
+          Object.keys(orders).forEach(id => {
+            const order = orders[id];
+            const amount = order.amount || 0;
+            totalRevenue += amount;
+            revenueData.push({ x: id, y: amount });
+          });
+        }
         document.getElementById("totalRevenue").textContent = totalRevenue.toFixed(2);
         updateChart(revenueData);
         hideLoader();
@@ -393,64 +400,77 @@
       }
     }
 
-    // Load Products with Search
+    // Load Products with Search using Realtime Database
     function loadProducts(searchQuery = "") {
       showLoader();
-      let productsQuery = collection(db, "products");
+      const productsRef = ref(db, "products");
+      let queryRef;
       if (searchQuery) {
-        productsQuery = query(productsQuery, where("name", ">=", searchQuery), where("name", "<=", searchQuery + "\uf8ff"));
+        queryRef = query(productsRef, orderByChild("name"), startAt(searchQuery), endAt(searchQuery + "\uf8ff"));
+      } else {
+        queryRef = productsRef;
       }
-      onSnapshot(productsQuery, (snap) => {
+      onValue(queryRef, (snapshot) => {
         productsCards.innerHTML = "";
-        snap.forEach(doc => {
-          const product = { id: doc.id, ...doc.data() };
-          if (product.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-              <h4>${product.name}</h4>
-              <p><strong>Price:</strong> ${product.price.toFixed(2)} PKR</p>
-              <p><strong>Description:</strong> ${product.description || "N/A"}</p>
-              ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
-              <div class="actions">
-                <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
-              </div>
-            `;
-            productsCards.appendChild(card);
-          }
-        });
+        const data = snapshot.val();
+        if (data) {
+          Object.keys(data).forEach(id => {
+            const product = { id, ...data[id] };
+            if (product.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+              const card = document.createElement("div");
+              card.className = "card";
+              card.innerHTML = `
+                <h4>${product.name}</h4>
+                <p><strong>Price:</strong> ${parseFloat(product.price).toFixed(2)} PKR</p>
+                <p><strong>Description:</strong> ${product.description || "N/A"}</p>
+                ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
+                <div class="actions">
+                  <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
+                  <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
+                </div>
+              `;
+              productsCards.appendChild(card);
+            }
+          });
+        }
         setupCardListeners();
         hideLoader();
       });
     }
 
-    // Load Orders with Search and Status Update
+    // Load Orders with Search and Status Update using Realtime Database
     function loadOrders(searchQuery = "") {
       showLoader();
-      let ordersQuery = collection(db, "orders");
+      const ordersRef = ref(db, "orders");
+      let queryRef;
       if (searchQuery) {
-        ordersQuery = query(ordersQuery, where("orderId", ">=", searchQuery), where("orderId", "<=", searchQuery + "\uf8ff"));
+        queryRef = query(ordersRef, orderByChild("orderId"), startAt(searchQuery), endAt(searchQuery + "\uf8ff"));
+      } else {
+        queryRef = ordersRef;
       }
-      onSnapshot(ordersQuery, (snap) => {
+      onValue(queryRef, (snapshot) => {
         ordersCards.innerHTML = "";
-        snap.forEach(doc => {
-          const order = { id: doc.id, ...doc.data() };
-          if ((order.orderId || order.id).toLowerCase().includes(searchQuery.toLowerCase())) {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-              <h4>Order #${order.orderId || order.id}</h4>
-              <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
-              <p><strong>Amount:</strong> ${order.amount.toFixed(2)} PKR</p>
-              <p><strong>Status:</strong> ${order.status || "Pending"}</p>
-              <div class="actions">
-                <button class="action-btn" data-id="${order.id}" data-status="${order.status || "Pending"}">Update Status</button>
-              </div>
-            `;
-            ordersCards.appendChild(card);
-          }
-        });
+        const data = snapshot.val();
+        if (data) {
+          Object.keys(data).forEach(id => {
+            const order = { id, ...data[id] };
+            const orderIdentifier = order.orderId || order.id;
+            if (orderIdentifier.toLowerCase().includes(searchQuery.toLowerCase())) {
+              const card = document.createElement("div");
+              card.className = "card";
+              card.innerHTML = `
+                <h4>Order #${orderIdentifier}</h4>
+                <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
+                <p><strong>Amount:</strong> ${parseFloat(order.amount).toFixed(2)} PKR</p>
+                <p><strong>Status:</strong> ${order.status || "Pending"}</p>
+                <div class="actions">
+                  <button class="action-btn" data-id="${order.id}" data-status="${order.status || "Pending"}">Update Status</button>
+                </div>
+              `;
+              ordersCards.appendChild(card);
+            }
+          });
+        }
         setupCardListeners();
         hideLoader();
       });
@@ -470,7 +490,7 @@
       };
     }
 
-    // Product and Order Management
+    // Product and Order Management using Realtime Database
     function setupModalListeners() {
       addProductBtn.addEventListener("click", () => {
         addProductForm.reset();
@@ -494,7 +514,7 @@
         try {
           const productData = { name, price, description };
           if (imageUrl) productData.imageUrl = imageUrl;
-          await addDoc(collection(db, "products"), productData);
+          await push(ref(db, "products"), productData);
           closeModal(addProductModal);
           showNotification("Product added successfully!");
         } catch (err) {
@@ -518,7 +538,7 @@
         try {
           const productData = { name, price, description };
           if (imageUrl) productData.imageUrl = imageUrl;
-          await updateDoc(doc(db, "products", id), productData);
+          await update(ref(db, "products/" + id), productData);
           closeModal(editProductModal);
           showNotification("Product updated successfully!");
         } catch (err) {
@@ -533,7 +553,7 @@
         const status = document.getElementById("orderStatus").value;
         showLoader();
         try {
-          await updateDoc(doc(db, "orders", id), { status });
+          await update(ref(db, "orders/" + id), { status });
           closeModal(updateOrderModal);
           showNotification("Order status updated successfully!");
         } catch (err) {
@@ -547,10 +567,10 @@
       document.querySelectorAll(".edit-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
           const id = e.target.getAttribute("data-id");
-          const productRef = doc(db, "products", id);
+          const productRef = ref(db, "products/" + id);
           showLoader();
-          getDoc(productRef).then(docSnap => {
-            const product = docSnap.data();
+          get(productRef).then(snapshot => {
+            const product = snapshot.val();
             document.getElementById("editId").value = id;
             document.getElementById("editName").value = product.name;
             document.getElementById("editPrice").value = product.price;
@@ -567,7 +587,7 @@
           const id = e.target.getAttribute("data-id");
           if (confirm("Are you sure you want to delete this product?")) {
             showLoader();
-            deleteDoc(doc(db, "products", id))
+            remove(ref(db, "products/" + id))
               .then(() => showNotification("Product deleted successfully!"))
               .catch(err => alert("Failed to delete product: " + err.message))
               .finally(() => hideLoader());
@@ -594,10 +614,13 @@
 
     function exportData(collectionName, filename) {
       showLoader();
-      onSnapshot(collection(db, collectionName), (snap) => {
-        const data = [];
-        snap.forEach(doc => data.push(doc.data()));
-        const csv = convertToCSV(data);
+      onValue(ref(db, collectionName), (snapshot) => {
+        const data = snapshot.val();
+        let dataArray = [];
+        if (data) {
+          dataArray = Object.keys(data).map(id => data[id]);
+        }
+        const csv = convertToCSV(dataArray);
         downloadCSV(csv, filename);
         hideLoader();
       });
@@ -622,23 +645,30 @@
 
     // Real-Time Notifications
     function setupNotifications() {
-      onSnapshot(collection(db, "orders"), (snap) => {
-        snap.docChanges().forEach(change => {
-          if (change.type === "added") {
-            showNotification(`New order #${change.doc.data().orderId || change.doc.id} received!`);
-          }
-        });
+      const ordersRef = ref(db, "orders");
+      onValue(ordersRef, (snapshot) => {
+        const orders = snapshot.val();
+        if (orders) {
+          Object.keys(orders).forEach(id => {
+            const order = orders[id];
+            // For simplicity, notify for every order loaded.
+            showNotification(`New order #${order.orderId || id} received!`);
+          });
+        }
       });
     }
 
     // Pagination and Sorting (Placeholder)
     function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1) {
       showLoader();
-      const startAt = (page - 1) * perPage;
-      onSnapshot(collection(db, collectionName), (snap) => {
-        const data = [];
-        snap.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
-        const paginatedData = data.slice(startAt, startAt + perPage);
+      const startAtIndex = (page - 1) * perPage;
+      onValue(ref(db, collectionName), (snapshot) => {
+        const data = snapshot.val();
+        let dataArray = [];
+        if (data) {
+          dataArray = Object.keys(data).map(id => ({ id, ...data[id] }));
+        }
+        const paginatedData = dataArray.slice(startAtIndex, startAtIndex + perPage);
         const container = document.getElementById(containerId);
         container.innerHTML = "";
         paginatedData.forEach(item => {
@@ -647,7 +677,7 @@
           if (collectionName === "products") {
             card.innerHTML = `
               <h4>${item.name}</h4>
-              <p><strong>Price:</strong> ${item.price.toFixed(2)} PKR</p>
+              <p><strong>Price:</strong> ${parseFloat(item.price).toFixed(2)} PKR</p>
               <p><strong>Description:</strong> ${item.description || "N/A"}</p>
               ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
               <div class="actions">
@@ -659,7 +689,7 @@
             card.innerHTML = `
               <h4>Order #${item.orderId || item.id}</h4>
               <p><strong>Customer:</strong> ${item.customerEmail || "Unknown"}</p>
-              <p><strong>Amount:</strong> ${item.amount.toFixed(2)} PKR</p>
+              <p><strong>Amount:</strong> ${parseFloat(item.amount).toFixed(2)} PKR</p>
               <p><strong>Status:</strong> ${item.status || "Pending"}</p>
               <div class="actions">
                 <button class="action-btn" data-id="${item.id}" data-status="${item.status || "Pending"}">Update Status</button>
@@ -673,37 +703,9 @@
       });
     }
 
-    // Initialize with Pagination
+    // Initialize with Pagination (Simple implementation)
     loadPaginatedData("products", "productsCards");
     loadPaginatedData("orders", "ordersCards");
-  </script>
-
-  <!-- Firebase and App Scripts (Second Instance) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-
-    // New Firebase configuration (Second Instance)
-    const firebaseConfig = {
-      apiKey: "AIzaSyAYQXMf4rMIYP-S0Sd6eDZFWepJFutjRRs",
-      authDomain: "lion-s-life-544b5.firebaseapp.com",
-      databaseURL: "https://lion-s-life-544b5-default-rtdb.firebaseio.com",
-      projectId: "lion-s-life-544b5",
-      storageBucket: "lion-s-life-544b5.appspot.com",
-      messagingSenderId: "1000750911480",
-      appId: "1:1000750911480:web:2158332431408f420cd00d",
-      measurementId: "G-1T50PD9JP3"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const storage = getStorage(app);
-
-    // The second instance is similar to the first and is used if you need to separate or modularize certain features.
-    // You can remove this block if a single instance suffices.
   </script>
 </body>
 </html>
