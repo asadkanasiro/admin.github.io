@@ -148,7 +148,6 @@
   </div>
 
   <!-- Product Modals -->
-  <!-- Add Product Modal: uses a file input for image upload -->
   <div id="addProductModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeAddModal">×</button>
@@ -167,7 +166,6 @@
     </div>
   </div>
 
-  <!-- Edit Product Modal: file input for new image (optional) plus hidden field to store current image URL -->
   <div id="editProductModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeEditModal">×</button>
@@ -180,7 +178,6 @@
         <input type="number" id="editPrice" step="0.01" required />
         <label for="editDesc">Description</label>
         <textarea id="editDesc" required></textarea>
-        <!-- Hidden field to store current image URL -->
         <input type="hidden" id="currentImageUrl" />
         <label for="editImageFile">Upload New Image (optional)</label>
         <input type="file" id="editImageFile" accept="image/*" />
@@ -189,7 +186,6 @@
     </div>
   </div>
 
-  <!-- Order Status Modal -->
   <div id="updateOrderModal" class="modal">
     <div class="modal-content">
       <button class="close-btn" id="closeOrderModal">×</button>
@@ -217,7 +213,6 @@
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-    // Firebase configuration using Realtime Database and Storage
     const firebaseConfig = {
       apiKey: "AIzaSyAYQXMf4rMIYP-S0Sd6eDZFWepJFutjRRs",
       authDomain: "lion-s-life-544b5.firebaseapp.com",
@@ -282,7 +277,6 @@
       sidebar.classList.toggle("active");
       content.classList.toggle("active");
     };
-    // Improved showNotification: logs errors if provided an error message.
     const showNotification = (message) => {
       const notification = document.createElement("div");
       notification.className = "notification";
@@ -295,7 +289,6 @@
       }, 5000);
     };
 
-    // Authentication State
     onAuthStateChanged(auth, (user) => {
       showLoader();
       if (user) {
@@ -313,7 +306,6 @@
       hideLoader();
     });
 
-    // Login
     loginBtn.addEventListener("click", () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -326,13 +318,10 @@
         });
     });
 
-    // Logout
     logoutBtn.addEventListener("click", () => signOut(auth));
 
-    // Sidebar Toggle
     menuToggle.addEventListener("click", toggleSidebar);
 
-    // Sidebar Navigation
     document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -345,7 +334,6 @@
       });
     });
 
-    // Initialize Dashboard
     function initializeAdminDashboard() {
       loadDashboardStats();
       loadProducts();
@@ -357,7 +345,6 @@
       setupChart();
     }
 
-    // Dashboard Stats and Chart using Realtime Database
     function loadDashboardStats() {
       showLoader();
       const productsRef = ref(db, "products");
@@ -406,7 +393,6 @@
       }
     }
 
-    // Load Products with Search using Realtime Database
     function loadProducts(searchQuery = "") {
       showLoader();
       const productsRef = ref(db, "products");
@@ -444,7 +430,6 @@
       });
     }
 
-    // Load Orders with Search and Status Update using Realtime Database
     function loadOrders(searchQuery = "") {
       showLoader();
       const ordersRef = ref(db, "orders");
@@ -482,7 +467,6 @@
       });
     }
 
-    // Search Functionality
     function setupSearch() {
       productSearch.addEventListener("input", debounce((e) => loadProducts(e.target.value), 300));
       orderSearch.addEventListener("input", debounce((e) => loadOrders(e.target.value), 300));
@@ -496,7 +480,6 @@
       };
     }
 
-    // Product and Order Management using Realtime Database and Storage
     function setupModalListeners() {
       addProductBtn.addEventListener("click", () => {
         addProductForm.reset();
@@ -506,39 +489,41 @@
       closeEditModal.addEventListener("click", () => closeModal(editProductModal));
       closeOrderModal.addEventListener("click", () => closeModal(updateOrderModal));
 
-      // Add Product: Upload file then push product data with download URL
+      // Updated Add Product Logic (Your Provided Snippet)
       addProductForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("addName").value;
         const price = parseFloat(document.getElementById("addPrice").value);
         const description = document.getElementById("addDesc").value;
         const imageFile = document.getElementById("addImageFile").files[0];
-        if (price <= 0) {
-          showNotification("Price must be positive.");
-          return;
-        }
+
         if (!imageFile) {
-          showNotification("Please select an image file.");
+          showNotification("Please select an image.");
           return;
         }
+
         showLoader();
+        
         try {
-          const imageStorageRef = storageRef(storage, 'productsImages/' + Date.now() + '_' + imageFile.name);
+          // Upload image to Firebase Storage
+          const imageStorageRef = storageRef(storage, `productsImages/${Date.now()}_${imageFile.name}`);
           await uploadBytes(imageStorageRef, imageFile);
           const downloadURL = await getDownloadURL(imageStorageRef);
+
+          // Save product in Realtime Database
           const productData = { name, price, description, imageUrl: downloadURL };
           await push(ref(db, "products"), productData);
+
           closeModal(addProductModal);
           showNotification("Product added successfully!");
         } catch (err) {
           console.error(err);
-          showNotification("Failed to add product: " + err.message);
+          showNotification("Error adding product: " + err.message);
         } finally {
           hideLoader();
         }
       });
 
-      // Edit Product: Optionally upload a new image if one is selected.
       editProductForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const id = document.getElementById("editId").value;
@@ -639,7 +624,6 @@
       });
     }
 
-    // Export Data
     function setupExport() {
       exportProductsBtn.addEventListener("click", () => exportData("products", "products.csv"));
       exportOrdersBtn.addEventListener("click", () => exportData("orders", "orders.csv"));
@@ -676,7 +660,6 @@
       window.URL.revokeObjectURL(url);
     }
 
-    // Real-Time Notifications
     function setupNotifications() {
       const ordersRef = ref(db, "orders");
       onValue(ordersRef, (snapshot) => {
@@ -690,7 +673,6 @@
       });
     }
 
-    // Pagination and Sorting (Placeholder)
     function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1) {
       showLoader();
       const startAtIndex = (page - 1) * perPage;
@@ -735,7 +717,6 @@
       });
     }
 
-    // Initialize with Pagination (Simple implementation)
     loadPaginatedData("products", "productsCards");
     loadPaginatedData("orders", "ordersCards");
   </script>
