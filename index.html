@@ -195,8 +195,8 @@
         <input type="number" id="addPrice" step="0.01" required />
         <label for="addDesc">Description</label>
         <textarea id="addDesc" required></textarea>
-        <label for="addImage">Image</label>
-        <input type="file" id="addImage" accept="image/*" required />
+        <label for="addImage">Image (URL)</label>
+        <input type="url" id="addImage" required />
         <button type="submit" class="action-btn">Add Product</button>
       </form>
     </div>
@@ -213,8 +213,8 @@
         <input type="number" id="editPrice" step="0.01" required />
         <label for="editDesc">Description</label>
         <textarea id="editDesc" required></textarea>
-        <label for="editImage">Image (Optional)</label>
-        <input type="file" id="editImage" accept="image/*" />
+        <label for="editImage">Image (URL)</label>
+        <input type="url" id="editImage" required />
         <button type="submit" class="action-btn">Save Changes</button>
       </form>
     </div>
@@ -243,8 +243,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -260,7 +259,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const storage = getStorage(app);
 
     // DOM Elements
     const loginContainer = document.getElementById("loginContainer");
@@ -576,22 +574,19 @@
         const name = document.getElementById("addName").value;
         const price = parseFloat(document.getElementById("addPrice").value);
         const description = document.getElementById("addDesc").value;
-        const imageFile = document.getElementById("addImage").files[0];
+        const imageUrl = document.getElementById("addImage").value;
 
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
-        if (!imageFile) {
-          alert("Please select an image.");
+        if (!imageUrl) {
+          alert("Please provide an image URL.");
           return;
         }
 
         showLoader();
         try {
-          const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-          await uploadBytes(storageRef, imageFile);
-          const imageUrl = await getDownloadURL(storageRef);
           const productData = { name, price, description, imageUrl };
           await addDoc(collection(db, "products"), productData);
           closeModal(addProductModal);
@@ -608,21 +603,20 @@
         const name = document.getElementById("editName").value;
         const price = parseFloat(document.getElementById("editPrice").value);
         const description = document.getElementById("editDesc").value;
-        const imageFile = document.getElementById("editImage").files[0];
+        const imageUrl = document.getElementById("editImage").value;
 
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
+        if (!imageUrl) {
+          alert("Please provide an image URL.");
+          return;
+        }
 
         showLoader();
         try {
-          const productData = { name, price, description };
-          if (imageFile) {
-            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-            await uploadBytes(storageRef, imageFile);
-            productData.imageUrl = await getDownloadURL(storageRef);
-          }
+          const productData = { name, price, description, imageUrl };
           await updateDoc(doc(db, "products", id), productData);
           closeModal(editProductModal);
           showNotification("Product updated successfully!");
@@ -655,13 +649,15 @@
           const productRef = doc(db, "products", id);
           showLoader();
           const docSnap = await getDocs(productRef);
-          const product = docSnap.data();
-          document.getElementById("editId").value = id;
-          document.getElementById("editName").value = product.name;
-          document.getElementById("editPrice").value = product.price;
-          document.getElementById("editDesc").value = product.description || "";
-          document.getElementById("editImage").value = "";
-          openModal(editProductModal);
+          if (docSnap.exists()) {
+            const product = docSnap.data();
+            document.getElementById("editId").value = id;
+            document.getElementById("editName").value = product.name;
+            document.getElementById("editPrice").value = product.price;
+            document.getElementById("editDesc").value = product.description || "";
+            document.getElementById("editImage").value = product.imageUrl || "";
+            openModal(editProductModal);
+          }
           hideLoader();
         });
       });
