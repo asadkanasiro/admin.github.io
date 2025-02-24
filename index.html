@@ -205,20 +205,23 @@
   <div id="loader" class="loader">Loading...</div>
   <div id="notifications" class="notifications"></div>
 
+  <!-- Firebase and App Scripts (First Instance) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
+    // New Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyC-sMxHYSiwld_U5GO7oGtHPw5CaVY_16s",
-      authDomain: "zindagi-334b7.firebaseapp.com",
-      projectId: "zindagi-334b7",
-      storageBucket: "zindagi-334b7.firebasestorage.app",
-      messagingSenderId: "936307521870",
-      appId: "1:936307521870:web:619c050d865cff2ac9861f",
-      measurementId: "G-B4HP267SJF"
+      apiKey: "AIzaSyAYQXMf4rMIYP-S0Sd6eDZFWepJFutjRRs",
+      authDomain: "lion-s-life-544b5.firebaseapp.com",
+      databaseURL: "https://lion-s-life-544b5-default-rtdb.firebaseio.com",
+      projectId: "lion-s-life-544b5",
+      storageBucket: "lion-s-life-544b5.appspot.com",
+      messagingSenderId: "1000750911480",
+      appId: "1:1000750911480:web:2158332431408f420cd00d",
+      measurementId: "G-1T50PD9JP3"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -290,7 +293,7 @@
     onAuthStateChanged(auth, (user) => {
       showLoader();
       if (user) {
-        if (user.email === "admin@zindagiperfumes.com") { // Replace with custom claims later
+        if (user.email === "admin@zindagiperfumes.com") {
           showAdmin();
           initializeAdminDashboard();
         } else {
@@ -332,7 +335,7 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove("active"));
         link.classList.add("active");
         document.getElementById(sectionId).classList.add("active");
-        if (window.innerWidth <= 768) toggleSidebar(); // Close sidebar on mobile after click
+        if (window.innerWidth <= 768) toggleSidebar();
       });
     });
 
@@ -490,7 +493,7 @@
         showLoader();
         try {
           const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl; // Use URL for now; replace with upload later
+          if (imageUrl) productData.imageUrl = imageUrl;
           await addDoc(collection(db, "products"), productData);
           closeModal(addProductModal);
           showNotification("Product added successfully!");
@@ -628,7 +631,7 @@
       });
     }
 
-    // Pagination and Sorting (Placeholder for simplicity)
+    // Pagination and Sorting (Placeholder)
     function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1) {
       showLoader();
       const startAt = (page - 1) * perPage;
@@ -670,17 +673,37 @@
       });
     }
 
-    // Initialize with Pagination (Simple implementation)
+    // Initialize with Pagination
     loadPaginatedData("products", "productsCards");
     loadPaginatedData("orders", "ordersCards");
+  </script>
 
-    // User Roles (Placeholder for custom claims)
-    // Replace email check with:
-    /*
-    user.getIdTokenResult().then(idTokenResult => {
-      if (idTokenResult.claims.admin) { ... }
-    });
-    */
+  <!-- Firebase and App Scripts (Second Instance) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+    // New Firebase configuration (Second Instance)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYQXMf4rMIYP-S0Sd6eDZFWepJFutjRRs",
+      authDomain: "lion-s-life-544b5.firebaseapp.com",
+      databaseURL: "https://lion-s-life-544b5-default-rtdb.firebaseio.com",
+      projectId: "lion-s-life-544b5",
+      storageBucket: "lion-s-life-544b5.appspot.com",
+      messagingSenderId: "1000750911480",
+      appId: "1:1000750911480:web:2158332431408f420cd00d",
+      measurementId: "G-1T50PD9JP3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // The second instance is similar to the first and is used if you need to separate or modularize certain features.
+    // You can remove this block if a single instance suffices.
   </script>
 </body>
 </html>
