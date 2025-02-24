@@ -51,10 +51,6 @@
     .action-btn.delete-btn:hover { background: #a73125; }
     .export-btn { background: #3498db; margin-left: 1rem; }
     .export-btn:hover { background: #2980b9; }
-    .pagination { margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; }
-    .pagination button { background: #d4a017; border: none; color: #fff; padding: 0.7rem 1.2rem; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
-    .pagination button:hover { background: #b58900; }
-    .pagination button:disabled { background: #bdc3c7; cursor: not-allowed; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
     .modal-content { background: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
@@ -67,11 +63,6 @@
     .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(44, 62, 80, 0.9); color: #fff; padding: 1rem 2rem; border-radius: 4px; display: none; z-index: 1001; font-weight: 500; }
     .notifications { position: fixed; top: 1rem; right: 1rem; background: #fff; padding: 1rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; display: none; }
     .notification { padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e0e4e8; font-size: 0.9rem; color: #2c3e50; }
-    .chat-container { margin-top: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e0e4e8; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
-    .chat-messages { height: 200px; overflow-y: auto; margin-bottom: 1rem; }
-    .chat-message { padding: 0.5rem; margin: 0.25rem 0; background: #f7f9fa; border-radius: 4px; }
-    .chat-input { width: 100%; padding: 0.75rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
-    .chat-send { background: #d4a017; border: none; color: #fff; padding: 0.75rem 1.5rem; border-radius: 4px; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; }
     .chart-container { width: 100%; max-width: 600px; margin: 2rem auto; }
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
@@ -86,10 +77,6 @@
       .card button { padding: 0.6rem; font-size: 0.8rem; }
       .search-bar input { max-width: 100%; }
       .chart-container { max-width: 100%; }
-      .pagination { flex-direction: column; gap: 0.5rem; }
-      .pagination button { width: 100%; }
-      .chat-container { padding: 1rem; }
-      .chat-messages { height: 150px; }
     }
   </style>
 </head>
@@ -115,7 +102,6 @@
           <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
           <li><a href="#" data-section="products">Products</a></li>
           <li><a href="#" data-section="orders">Orders</a></li>
-          <li><a href="#" data-section="chat">Chat</a></li>
         </ul>
       </nav>
       <footer><button id="logoutBtn">Sign Out</button></footer>
@@ -149,7 +135,6 @@
         <button class="action-btn" id="addProductBtn">Add Product</button>
         <button class="action-btn export-btn" id="exportProductsBtn">Export Products</button>
         <div class="cards-grid" id="productsCards"></div>
-        <div class="pagination" id="productsPagination"></div>
       </section>
       <section id="orders" class="section">
         <h2>Orders</h2>
@@ -158,15 +143,6 @@
         </div>
         <button class="action-btn export-btn" id="exportOrdersBtn">Export Orders</button>
         <div class="cards-grid" id="ordersCards"></div>
-        <div class="pagination" id="ordersPagination"></div>
-      </section>
-      <section id="chat" class="section">
-        <h2>Admin Chat</h2>
-        <div class="chat-container">
-          <div class="chat-messages" id="chatMessages"></div>
-          <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." />
-          <button id="chatSend" class="chat-send">Send</button>
-        </div>
       </section>
     </main>
   </div>
@@ -182,8 +158,8 @@
         <label for="addPrice">Price (PKR)</label>
         <input type="number" id="addPrice" step="0.01" required />
         <label for="addDesc">Description</label>
-        <textarea id="addDesc" required></textarea>
-        <label for="addImage">Upload Image</label>
+        <text area id="addDesc" required></text area>
+        <label for="addImage">Image</label>
         <input type="file" id="addImage" accept="image/*" required />
         <button type="submit" class="action-btn">Add Product</button>
       </form>
@@ -201,7 +177,7 @@
         <input type="number" id="editPrice" step="0.01" required />
         <label for="editDesc">Description</label>
         <textarea id="editDesc" required></textarea>
-        <label for="editImage">Upload Image</label>
+        <label for="editImage">Image</label>
         <input type="file" id="editImage" accept="image/*" />
         <button type="submit" class="action-btn">Save Changes</button>
       </form>
@@ -231,9 +207,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC-sMxHYSiwld_U5GO7oGtHPw5CaVY_16s",
@@ -277,11 +253,6 @@
     const ordersCards = document.getElementById("ordersCards");
     const exportProductsBtn = document.getElementById("exportProductsBtn");
     const exportOrdersBtn = document.getElementById("exportOrdersBtn");
-    const productsPagination = document.getElementById("productsPagination");
-    const ordersPagination = document.getElementById("ordersPagination");
-    const chatMessages = document.getElementById("chatMessages");
-    const chatInput = document.getElementById("chatInput");
-    const chatSend = document.getElementById("chatSend");
 
     // Utility Functions
     const showLoader = () => loader.style.display = "block";
@@ -314,36 +285,18 @@
         if (!notifications.querySelector(".notification")) notifications.style.display = "none";
       }, 5000);
     };
-    const debounce = (func, wait) => {
-      let timeout;
-      return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-      };
-    };
 
-    // Authentication State with Custom Claims
-    onAuthStateChanged(auth, async (user) => {
+    // Authentication State
+    onAuthStateChanged(auth, (user) => {
       showLoader();
       if (user) {
-        try {
-          const tokenResult = await getIdTokenResult(user);
-          if (tokenResult.claims.admin === true) {
-            showAdmin();
-            initializeAdminDashboard();
-          } else if (tokenResult.claims.viewer === true) {
-            showAdmin();
-            initializeViewerDashboard(); // Limited access
-          } else {
-            signOut(auth);
-            showLogin();
-            loginError.textContent = "Access denied. Admins or viewers only.";
-          }
-        } catch (err) {
-          console.error("Token error:", err);
+        if (user.email === "admin@zindagiperfumes.com") { // Replace with custom claims later
+          showAdmin();
+          initializeAdminDashboard();
+        } else {
           signOut(auth);
           showLogin();
-          loginError.textContent = "Authentication failed. Please try again.";
+          loginError.textContent = "Access denied. Admins only.";
         }
       } else {
         showLogin();
@@ -379,34 +332,19 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove("active"));
         link.classList.add("active");
         document.getElementById(sectionId).classList.add("active");
-        if (window.innerWidth <= 768) toggleSidebar();
+        if (window.innerWidth <= 768) toggleSidebar(); // Close sidebar on mobile after click
       });
     });
 
-    // Initialize Dashboards
-    let currentPage = { products: 1, orders: 1 };
-    const perPage = 5;
-
+    // Initialize Dashboard
     function initializeAdminDashboard() {
       loadDashboardStats();
-      loadPaginatedData("products", "productsCards", currentPage.products, perPage);
-      loadPaginatedData("orders", "ordersCards", currentPage.orders, perPage);
+      loadProducts();
+      loadOrders();
       setupModalListeners();
       setupSearch();
       setupExport();
       setupNotifications();
-      setupChat();
-      setupChart();
-    }
-
-    function initializeViewerDashboard() {
-      // Limited access: hide add/edit/delete, show only view
-      document.getElementById("addProductBtn").style.display = "none";
-      document.querySelectorAll(".edit-btn, .delete-btn, .action-btn[data-id]").forEach(btn => btn.style.display = "none");
-      loadDashboardStats();
-      loadPaginatedData("products", "productsCards", currentPage.products, perPage);
-      loadPaginatedData("orders", "ordersCards", currentPage.orders, perPage);
-      setupSearch();
       setupChart();
     }
 
@@ -452,102 +390,84 @@
       }
     }
 
-    // Load Paginated and Sorted Data
-    function loadPaginatedData(collectionName, containerId, page, perPage, sortBy = "name", sortDir = "asc") {
+    // Load Products with Search
+    function loadProducts(searchQuery = "") {
       showLoader();
-      const startAt = (page - 1) * perPage;
-      let dataQuery = collection(db, collectionName);
-      dataQuery = query(dataQuery, orderBy(sortBy, sortDir), limit(perPage));
-      if (page > 1) {
-        // Simplified pagination (requires last document for startAfter)
-        // For full implementation, you'd need to track the last document
-        const lastDoc = getLastDoc(collectionName, page - 1, perPage, sortBy, sortDir);
-        if (lastDoc) dataQuery = query(dataQuery, startAfter(lastDoc));
+      let productsQuery = collection(db, "products");
+      if (searchQuery) {
+        productsQuery = query(productsQuery, where("name", ">=", searchQuery), where("name", "<=", searchQuery + "\uf8ff"));
       }
-      onSnapshot(dataQuery, (snap) => {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
+      onSnapshot(productsQuery, (snap) => {
+        productsCards.innerHTML = "";
         snap.forEach(doc => {
-          const item = { id: doc.id, ...doc.data() };
-          const card = document.createElement("div");
-          card.className = "card";
-          if (collectionName === "products") {
+          const product = { id: doc.id, ...doc.data() };
+          if (product.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+            const card = document.createElement("div");
+            card.className = "card";
             card.innerHTML = `
-              <h4>${item.name}</h4>
-              <p><strong>Price:</strong> ${item.price.toFixed(2)} PKR</p>
-              <p><strong>Description:</strong> ${item.description || "N/A"}</p>
-              ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
+              <h4>${product.name}</h4>
+              <p><strong>Price:</strong> ${product.price.toFixed(2)} PKR</p>
+              <p><strong>Description:</strong> ${product.description || "N/A"}</p>
+              ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
               <div class="actions">
-                <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
+                <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
+                <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
               </div>
             `;
-          } else {
-            card.innerHTML = `
-              <h4>Order #${item.orderId || item.id}</h4>
-              <p><strong>Customer:</strong> ${item.customerEmail || "Unknown"}</p>
-              <p><strong>Amount:</strong> ${item.amount.toFixed(2)} PKR</p>
-              <p><strong>Status:</strong> ${item.status || "Pending"}</p>
-              <div class="actions">
-                <button class="action-btn" data-id="${item.id}" data-status="${item.status || "Pending"}">Update Status</button>
-              </div>
-            `;
+            productsCards.appendChild(card);
           }
-          container.appendChild(card);
         });
-        setupPagination(collectionName, page, Math.ceil(snap.size / perPage));
         setupCardListeners();
-        hideLoader();
-      }, (err) => {
-        console.error(`Error loading ${collectionName}:`, err);
         hideLoader();
       });
     }
 
-    function getLastDoc(collectionName, page, perPage, sortBy, sortDir) {
-      // Placeholder: You'd need to fetch the last document from the previous page
-      // For simplicity, this is skipped; implement with Firestore cursors or track last doc
-      return null;
-    }
-
-    function setupPagination(collectionName, current, totalPages) {
-      const pagination = document.getElementById(`${collectionName}Pagination`);
-      pagination.innerHTML = "";
-      if (totalPages > 1) {
-        if (current > 1) {
-          const prevBtn = document.createElement("button");
-          prevBtn.textContent = "Previous";
-          prevBtn.addEventListener("click", () => {
-            currentPage[collectionName]--;
-            loadPaginatedData(collectionName, `${collectionName}Cards`, currentPage[collectionName], perPage);
-          });
-          pagination.appendChild(prevBtn);
-        }
-        if (current < totalPages) {
-          const nextBtn = document.createElement("button");
-          nextBtn.textContent = "Next";
-          nextBtn.addEventListener("click", () => {
-            currentPage[collectionName]++;
-            loadPaginatedData(collectionName, `${collectionName}Cards`, currentPage[collectionName], perPage);
-          });
-          pagination.appendChild(nextBtn);
-        }
+    // Load Orders with Search and Status Update
+    function loadOrders(searchQuery = "") {
+      showLoader();
+      let ordersQuery = collection(db, "orders");
+      if (searchQuery) {
+        ordersQuery = query(ordersQuery, where("orderId", ">=", searchQuery), where("orderId", "<=", searchQuery + "\uf8ff"));
       }
+      onSnapshot(ordersQuery, (snap) => {
+        ordersCards.innerHTML = "";
+        snap.forEach(doc => {
+          const order = { id: doc.id, ...doc.data() };
+          if ((order.orderId || order.id).toLowerCase().includes(searchQuery.toLowerCase())) {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <h4>Order #${order.orderId || order.id}</h4>
+              <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
+              <p><strong>Amount:</strong> ${order.amount.toFixed(2)} PKR</p>
+              <p><strong>Status:</strong> ${order.status || "Pending"}</p>
+              <div class="actions">
+                <button class="action-btn" data-id="${order.id}" data-status="${order.status || "Pending"}">Update Status</button>
+              </div>
+            `;
+            ordersCards.appendChild(card);
+          }
+        });
+        setupCardListeners();
+        hideLoader();
+      });
     }
 
     // Search Functionality
     function setupSearch() {
-      productSearch.addEventListener("input", debounce((e) => {
-        currentPage.products = 1;
-        loadPaginatedData("products", "productsCards", currentPage.products, perPage, "name", "asc");
-      }, 300));
-      orderSearch.addEventListener("input", debounce((e) => {
-        currentPage.orders = 1;
-        loadPaginatedData("orders", "ordersCards", currentPage.orders, perPage, "orderId", "asc");
-      }, 300));
+      productSearch.addEventListener("input", debounce((e) => loadProducts(e.target.value), 300));
+      orderSearch.addEventListener("input", debounce((e) => loadOrders(e.target.value), 300));
     }
 
-    // Product and Order Management with Image Upload
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    // Product and Order Management
     function setupModalListeners() {
       addProductBtn.addEventListener("click", () => {
         addProductForm.reset();
@@ -571,7 +491,7 @@
         try {
           let imageUrl = "";
           if (imageFile) {
-            const storageRef = ref(storage, `products/${imageFile.name}`);
+            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
             await uploadBytes(storageRef, imageFile);
             imageUrl = await getDownloadURL(storageRef);
           }
@@ -598,15 +518,16 @@
         }
         showLoader();
         try {
-          let imageUrl = "";
+          const productRef = doc(db, "products", id);
+          const productDoc = await getDoc(productRef);
+          let imageUrl = productDoc.data().imageUrl || "";
           if (imageFile) {
-            const storageRef = ref(storage, `products/${imageFile.name}`);
+            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
             await uploadBytes(storageRef, imageFile);
             imageUrl = await getDownloadURL(storageRef);
           }
-          const productData = { name, price, description };
-          if (imageUrl) productData.imageUrl = imageUrl;
-          await updateDoc(doc(db, "products", id), productData);
+          const productData = { name, price, description, imageUrl };
+          await updateDoc(productRef, productData);
           closeModal(editProductModal);
           showNotification("Product updated successfully!");
         } catch (err) {
@@ -643,7 +564,7 @@
             document.getElementById("editName").value = product.name;
             document.getElementById("editPrice").value = product.price;
             document.getElementById("editDesc").value = product.description || "";
-            document.getElementById("editImage").value = ""; // Clear file input
+            document.getElementById("editImage").value = ""; // Reset file input
             openModal(editProductModal);
             hideLoader();
           });
@@ -719,50 +640,18 @@
       });
     }
 
-    // Real-Time Chat
-    function setupChat() {
-      const chatRef = collection(db, "chat");
-      onSnapshot(chatRef, (snap) => {
-        chatMessages.innerHTML = "";
-        snap.forEach(doc => {
-          const msg = doc.data();
-          const message = document.createElement("div");
-          message.className = "chat-message";
-          message.textContent = `${msg.user || "Admin"}: ${msg.text} (${new Date(msg.timestamp).toLocaleString()})`;
-          chatMessages.appendChild(message);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-      });
-
-      chatSend.addEventListener("click", () => {
-        const text = chatInput.value.trim();
-        if (text) {
-          showLoader();
-          addDoc(chatRef, {
-            user: "Admin", // Replace with actual user ID or name
-            text,
-            timestamp: new Date().toISOString()
-          }).then(() => {
-            chatInput.value = "";
-            hideLoader();
-          }).catch(err => {
-            alert("Failed to send message: " + err.message);
-            hideLoader();
-          });
-        }
-      });
+    // Search Functionality
+    function setupSearch() {
+      productSearch.addEventListener("input", debounce((e) => loadProducts(e.target.value), 300));
+      orderSearch.addEventListener("input", debounce((e) => loadOrders(e.target.value), 300));
     }
 
-    // Error Handling and Logging
-    function logError(error, context) {
-      showLoader();
-      addDoc(collection(db, "errors"), {
-        message: error.message,
-        stack: error.stack,
-        context,
-        timestamp: new Date().toISOString()
-      }).then(() => hideLoader())
-        .catch(err => console.error("Failed to log error:", err));
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
     }
   </script>
 </body>
