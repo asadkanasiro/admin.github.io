@@ -7,53 +7,45 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --primary: #d4a017; /* Gold */
-      --secondary: #2c3e50; /* Dark Blue */
-      --accent: #ecf0f1; /* Light Gray */
-    }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
-    body { background: var(--accent); color: var(--secondary); line-height: 1.5; }
+    body { background: #ecf0f1; color: #2c3e50; line-height: 1.5; }
     .login-container, .admin-container { display: none; min-height: 100vh; }
     .login-container.active, .admin-container.active { display: block; }
-    .login-card { background: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); width: 100%; max-width: 420px; margin: 0 auto; text-align: center; border: 2px solid var(--primary); }
-    .login-card h2 { font-size: 1.75rem; font-weight: 500; margin-bottom: 2rem; color: var(--secondary); }
+    .login-card { background: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); width: 100%; max-width: 420px; margin: 0 auto; text-align: center; }
+    .login-card h2 { font-size: 1.75rem; font-weight: 500; margin-bottom: 2rem; color: #2c3e50; }
     .login-container input { width: 100%; padding: 0.85rem; margin: 0.75rem 0; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; transition: border-color 0.3s; }
-    .login-container input:focus { border-color: var(--primary); outline: none; }
-    .login-container button, .action-btn { background: var(--primary); border: none; color: #fff; padding: 0.85rem 1.5rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
+    .login-container input:focus { border-color: #d4a017; outline: none; }
+    .login-container button, .action-btn { background: #d4a017; border: none; color: #fff; padding: 0.85rem 1.5rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
     .login-container button:hover, .action-btn:hover { background: #b58900; }
-    .login-container button:disabled, .action-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
     .error-message { color: #c0392b; margin-top: 1rem; font-size: 0.9rem; font-weight: 400; }
     .admin-container { padding: 1rem; }
-    .sidebar { background: var(--secondary); color: var(--accent); position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; transition: left 0.3s; z-index: 1001; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); }
+    .sidebar { background: #2c3e50; color: #ecf0f1; position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; transition: left 0.3s; z-index: 1001; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); }
     .sidebar.active { left: 0; }
-    .sidebar header { padding: 2rem 1.5rem; border-bottom: 1px solid #34495e; text-align: center; }
-    .sidebar header img { max-width: 150px; margin-bottom: 1rem; }
-    .sidebar header h2 { font-size: 1.5rem; font-weight: 700; color: var(--primary); letter-spacing: 0.5px; }
+    .sidebar header { padding: 2rem 1.5rem; border-bottom: 1px solid #34495e; }
+    .sidebar header h2 { font-size: 1.5rem; font-weight: 700; color: #d4a017; letter-spacing: 0.5px; }
     .sidebar nav ul { list-style: none; padding: 1rem 0; }
     .sidebar nav ul li a { display: block; padding: 1rem 1.5rem; color: #bdc3c7; text-decoration: none; font-size: 1.1rem; font-weight: 400; transition: all 0.3s; }
-    .sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: #34495e; color: var(--primary); }
+    .sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: #34495e; color: #d4a017; }
     .sidebar footer { padding: 1.5rem; border-top: 1px solid #34495e; }
-    .sidebar footer button { width: 100%; background: var(--primary); border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
+    .sidebar footer button { width: 100%; background: #d4a017; border: none; color: #fff; padding: 0.85rem; border-radius: 4px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; }
     .sidebar footer button:hover { background: #b58900; }
-    .menu-toggle { display: none; background: var(--secondary); color: var(--accent); border: none; padding: 1rem; font-size: 1.5rem; cursor: pointer; position: fixed; left: 1rem; top: 1rem; z-index: 1002; border-radius: 4px; }
+    .menu-toggle { display: none; background: #2c3e50; color: #ecf0f1; border: none; padding: 1rem; font-size: 1.5rem; cursor: pointer; position: fixed; left: 1rem; top: 1rem; z-index: 1002; border-radius: 4px; }
     .menu-toggle:hover { background: #34495e; }
     .content { margin-left: 0; transition: margin-left 0.3s; }
     .content.active { margin-left: 280px; }
     .section { background: #fff; padding: 2rem; border-radius: 8px; border: 1px solid #e0e4e8; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); margin-bottom: 1.5rem; }
-    .section h2 { font-size: 1.75rem; font-weight: 500; color: var(--secondary); margin-bottom: 1.5rem; }
-    .search-bar { margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; }
+    .section h2 { font-size: 1.75rem; font-weight: 500; color: #2c3e50; margin-bottom: 1.5rem; }
+    .search-bar { margin-bottom: 1.5rem; }
     .search-bar input { width: 100%; max-width: 300px; padding: 0.85rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
-    .search-bar select { padding: 0.75rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
     .stats-grid, .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
     .stat-card, .card { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e0e4e8; text-align: center; transition: box-shadow 0.3s; }
     .stat-card:hover, .card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-    .stat-card span { display: block; font-size: 2.25rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+    .stat-card span { display: block; font-size: 2.25rem; font-weight: 700; color: #d4a017; margin-bottom: 0.5rem; }
     .stat-card p, .card p { font-size: 1rem; color: #7f8c8d; font-weight: 400; }
-    .card h4 { font-size: 1.2rem; font-weight: 500; color: var(--secondary); margin-bottom: 0.75rem; }
+    .card h4 { font-size: 1.2rem; font-weight: 500; color: #2c3e50; margin-bottom: 0.75rem; }
     .card .actions { margin-top: 1rem; }
     .card button { width: 100%; margin: 0.25rem 0; padding: 0.7rem; font-size: 0.9rem; }
-    .action-btn.edit-btn { background: var(--primary); }
+    .action-btn.edit-btn { background: #d4a017; }
     .action-btn.edit-btn:hover { background: #b58900; }
     .action-btn.delete-btn { background: #c0392b; }
     .action-btn.delete-btn:hover { background: #a73125; }
@@ -62,7 +54,7 @@
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
     .modal-content { background: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
-    .modal-content h3 { font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--secondary); }
+    .modal-content h3 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #2c3e50; }
     .modal-content label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
     .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 0.75rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1rem; }
     .modal-content textarea { resize: vertical; min-height: 100px; }
@@ -70,10 +62,8 @@
     .close-btn { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d; }
     .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(44, 62, 80, 0.9); color: #fff; padding: 1rem 2rem; border-radius: 4px; display: none; z-index: 1001; font-weight: 500; }
     .notifications { position: fixed; top: 1rem; right: 1rem; background: #fff; padding: 1rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; display: none; }
-    .notification { padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e0e4e8; font-size: 0.9rem; color: var(--secondary); }
+    .notification { padding: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e0e4e8; font-size: 0.9rem; color: #2c3e50; }
     .chart-container { width: 100%; max-width: 600px; margin: 2rem auto; }
-    .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.5rem; }
-    .pagination span { font-size: 1rem; color: var(--secondary); }
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
       .sidebar { left: -280px; }
@@ -86,7 +76,6 @@
       .card h4 { font-size: 1.1rem; }
       .card button { padding: 0.6rem; font-size: 0.8rem; }
       .search-bar input { max-width: 100%; }
-      .search-bar { flex-direction: column; align-items: flex-start; }
       .chart-container { max-width: 100%; }
     }
   </style>
@@ -107,10 +96,7 @@
   <div class="admin-container" id="adminContainer">
     <button class="menu-toggle" id="menuToggle">☰</button>
     <aside class="sidebar">
-      <header>
-        <img src="path/to/zindagi-logo.png" alt="Zindagi Perfumes Logo">
-        <h2>Zindagi Perfumes</h2>
-      </header>
+      <header><h2>Zindagi Perfumes</h2></header>
       <nav>
         <ul>
           <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
@@ -145,40 +131,18 @@
         <h2>Products</h2>
         <div class="search-bar">
           <input type="text" id="productSearch" placeholder="Search products..." />
-          <select id="productSort">
-            <option value="name_asc">Name (A-Z)</option>
-            <option value="name_desc">Name (Z-A)</option>
-            <option value="price_asc">Price (Low to High)</option>
-            <option value="price_desc">Price (High to Low)</option>
-          </select>
         </div>
         <button class="action-btn" id="addProductBtn">Add Product</button>
         <button class="action-btn export-btn" id="exportProductsBtn">Export Products</button>
         <div class="cards-grid" id="productsCards"></div>
-        <div class="pagination">
-          <button id="prevProducts" class="action-btn">Previous</button>
-          <span id="productsPageNum">Page 1</span>
-          <button id="nextProducts" class="action-btn">Next</button>
-        </div>
       </section>
       <section id="orders" class="section">
         <h2>Orders</h2>
         <div class="search-bar">
           <input type="text" id="orderSearch" placeholder="Search orders..." />
-          <select id="orderSort">
-            <option value="orderId_asc">Order ID (Asc)</option>
-            <option value="orderId_desc">Order ID (Desc)</option>
-            <option value="amount_asc">Amount (Low to High)</option>
-            <option value="amount_desc">Amount (High to Low)</option>
-          </select>
         </div>
         <button class="action-btn export-btn" id="exportOrdersBtn">Export Orders</button>
         <div class="cards-grid" id="ordersCards"></div>
-        <div class="pagination">
-          <button id="prevOrders" class="action-btn">Previous</button>
-          <span id="ordersPageNum">Page 1</span>
-          <button id="nextOrders" class="action-btn">Next</button>
-        </div>
       </section>
     </main>
   </div>
@@ -195,8 +159,8 @@
         <input type="number" id="addPrice" step="0.01" required />
         <label for="addDesc">Description</label>
         <textarea id="addDesc" required></textarea>
-        <label for="addImage">Image</label>
-        <input type="file" id="addImage" accept="image/*" required />
+        <label for="addImage">Image (URL)</label>
+        <input type="url" id="addImage" required />
         <button type="submit" class="action-btn">Add Product</button>
       </form>
     </div>
@@ -213,8 +177,8 @@
         <input type="number" id="editPrice" step="0.01" required />
         <label for="editDesc">Description</label>
         <textarea id="editDesc" required></textarea>
-        <label for="editImage">Image (Optional)</label>
-        <input type="file" id="editImage" accept="image/*" />
+        <label for="editImage">Image (URL)</label>
+        <input type="url" id="editImage" required />
         <button type="submit" class="action-btn">Save Changes</button>
       </form>
     </div>
@@ -243,7 +207,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
@@ -321,43 +285,23 @@
         if (!notifications.querySelector(".notification")) notifications.style.display = "none";
       }, 5000);
     };
-    const debounce = (func, wait) => {
-      let timeout;
-      return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-      };
-    };
 
-    // Authentication State with Roles
+    // Authentication State
     onAuthStateChanged(auth, (user) => {
       showLoader();
       if (user) {
-        user.getIdTokenResult().then(idTokenResult => {
-          const role = idTokenResult.claims.role;
-          if (role === "full_admin" || role === "viewer") {
-            showAdmin();
-            initializeAdminDashboard();
-            if (role === "viewer") {
-              document.querySelectorAll(".action-btn:not(.export-btn)").forEach(btn => btn.disabled = true);
-              addProductBtn.disabled = true;
-            }
-          } else {
-            signOut(auth);
-            showLogin();
-            loginError.textContent = "Access denied. Admins only.";
-          }
-          hideLoader();
-        }).catch(err => {
-          console.error("Token error:", err);
+        if (user.email === "admin@zindagiperfumes.com") { // Replace with custom claims later
+          showAdmin();
+          initializeAdminDashboard();
+        } else {
           signOut(auth);
           showLogin();
-          hideLoader();
-        });
+          loginError.textContent = "Access denied. Admins only.";
+        }
       } else {
         showLogin();
-        hideLoader();
       }
+      hideLoader();
     });
 
     // Login
@@ -388,7 +332,7 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove("active"));
         link.classList.add("active");
         document.getElementById(sectionId).classList.add("active");
-        if (window.innerWidth <= 768) toggleSidebar();
+        if (window.innerWidth <= 768) toggleSidebar(); // Close sidebar on mobile after click
       });
     });
 
@@ -402,7 +346,6 @@
       setupExport();
       setupNotifications();
       setupChart();
-      setupPaginationAndSorting();
     }
 
     // Dashboard Stats and Chart
@@ -425,6 +368,9 @@
         document.getElementById("totalRevenue").textContent = totalRevenue.toFixed(2);
         updateChart(revenueData);
         hideLoader();
+      }, (err) => {
+        console.error("Stats error:", err);
+        hideLoader();
       });
     }
 
@@ -444,122 +390,82 @@
       }
     }
 
-    // Load Products and Orders with Pagination
-    async function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1, sort = "name_asc", searchQuery = "", lastDoc = null) {
+    // Load Products with Search
+    function loadProducts(searchQuery = "") {
       showLoader();
-      const container = document.getElementById(containerId);
-      container.innerHTML = "";
-
-      let [sortField, sortDir] = sort.split("_");
-      sortField = collectionName === "products" ? (sortField === "name" ? "name" : "price") : (sortField === "orderId" ? "orderId" : "amount");
-
-      let q = query(
-        collection(db, collectionName),
-        orderBy(sortField, sortDir),
-        limit(perPage)
-      );
-      if (lastDoc && page > 1) q = query(q, startAfter(lastDoc));
-
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        container.innerHTML = "<p>No items found.</p>";
-        hideLoader();
-        return null;
+      let productsQuery = collection(db, "products");
+      if (searchQuery) {
+        productsQuery = query(productsQuery, where("name", ">=", searchQuery), where("name", "<=", searchQuery + "\uf8ff"));
       }
-
-      snap.forEach(doc => {
-        const item = { id: doc.id, ...doc.data() };
-        if (searchQuery && !(item[sortField] || item.id).toLowerCase().includes(searchQuery.toLowerCase())) return;
-        const card = document.createElement("div");
-        card.className = "card";
-        if (collectionName === "products") {
-          card.innerHTML = `
-            <h4>${item.name}</h4>
-            <p><strong>Price:</strong> ${item.price.toFixed(2)} PKR</p>
-            <p><strong>Description:</strong> ${item.description || "N/A"}</p>
-            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
-            <div class="actions">
-              <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
-              <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
-            </div>
-          `;
-        } else {
-          card.innerHTML = `
-            <h4>Order #${item.orderId || item.id}</h4>
-            <p><strong>Customer:</strong> ${item.customerEmail || "Unknown"}</p>
-            <p><strong>Amount:</strong> ${item.amount.toFixed(2)} PKR</p>
-            <p><strong>Status:</strong> ${item.status || "Pending"}</p>
-            <div class="actions">
-              <button class="action-btn" data-id="${item.id}" data-status="${item.status || "Pending"}">Update Status</button>
-            </div>
-          `;
-        }
-        container.appendChild(card);
+      onSnapshot(productsQuery, (snap) => {
+        productsCards.innerHTML = "";
+        snap.forEach(doc => {
+          const product = { id: doc.id, ...doc.data() };
+          if (product.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <h4>${product.name}</h4>
+              <p><strong>Price:</strong> ${product.price.toFixed(2)} PKR</p>
+              <p><strong>Description:</strong> ${product.description || "N/A"}</p>
+              ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
+              <div class="actions">
+                <button class="action-btn edit-btn" data-id="${product.id}">Edit</button>
+                <button class="action-btn delete-btn" data-id="${product.id}">Delete</button>
+              </div>
+            `;
+            productsCards.appendChild(card);
+          }
+        });
+        setupCardListeners();
+        hideLoader();
       });
-      setupCardListeners();
-      hideLoader();
-
-      document.getElementById(`${containerId === "productsCards" ? "products" : "orders"}PageNum`).textContent = `Page ${page}`;
-      return snap.docs[snap.docs.length - 1];
     }
 
-    // Pagination and Sorting Setup
-    function setupPaginationAndSorting() {
-      let productsPage = 1, ordersPage = 1, productsLastDoc = null, ordersLastDoc = null;
-      const perPage = 5;
-
-      // Products
-      document.getElementById("prevProducts").addEventListener("click", async () => {
-        if (productsPage > 1) {
-          productsPage--;
-          productsLastDoc = await loadPaginatedData("products", "productsCards", perPage, productsPage, document.getElementById("productSort").value, productSearch.value, productsPage > 1 ? productsLastDoc : null);
-        }
+    // Load Orders with Search and Status Update
+    function loadOrders(searchQuery = "") {
+      showLoader();
+      let ordersQuery = collection(db, "orders");
+      if (searchQuery) {
+        ordersQuery = query(ordersQuery, where("orderId", ">=", searchQuery), where("orderId", "<=", searchQuery + "\uf8ff"));
+      }
+      onSnapshot(ordersQuery, (snap) => {
+        ordersCards.innerHTML = "";
+        snap.forEach(doc => {
+          const order = { id: doc.id, ...doc.data() };
+          if ((order.orderId || order.id).toLowerCase().includes(searchQuery.toLowerCase())) {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <h4>Order #${order.orderId || order.id}</h4>
+              <p><strong>Customer:</strong> ${order.customerEmail || "Unknown"}</p>
+              <p><strong>Amount:</strong> ${order.amount.toFixed(2)} PKR</p>
+              <p><strong>Status:</strong> ${order.status || "Pending"}</p>
+              <div class="actions">
+                <button class="action-btn" data-id="${order.id}" data-status="${order.status || "Pending"}">Update Status</button>
+              </div>
+            `;
+            ordersCards.appendChild(card);
+          }
+        });
+        setupCardListeners();
+        hideLoader();
       });
-      document.getElementById("nextProducts").addEventListener("click", async () => {
-        productsPage++;
-        productsLastDoc = await loadPaginatedData("products", "productsCards", perPage, productsPage, document.getElementById("productSort").value, productSearch.value, productsLastDoc);
-      });
-      document.getElementById("productSort").addEventListener("change", async (e) => {
-        productsPage = 1;
-        productsLastDoc = null;
-        productsLastDoc = await loadPaginatedData("products", "productsCards", perPage, productsPage, e.target.value, productSearch.value);
-      });
-      productSearch.addEventListener("input", debounce(async (e) => {
-        productsPage = 1;
-        productsLastDoc = null;
-        productsLastDoc = await loadPaginatedData("products", "productsCards", perPage, productsPage, document.getElementById("productSort").value, e.target.value);
-      }, 300));
-
-      // Orders
-      document.getElementById("prevOrders").addEventListener("click", async () => {
-        if (ordersPage > 1) {
-          ordersPage--;
-          ordersLastDoc = await loadPaginatedData("orders", "ordersCards", perPage, ordersPage, document.getElementById("orderSort").value, orderSearch.value, ordersPage > 1 ? ordersLastDoc : null);
-        }
-      });
-      document.getElementById("nextOrders").addEventListener("click", async () => {
-        ordersPage++;
-        ordersLastDoc = await loadPaginatedData("orders", "ordersCards", perPage, ordersPage, document.getElementById("orderSort").value, orderSearch.value, ordersLastDoc);
-      });
-      document.getElementById("orderSort").addEventListener("change", async (e) => {
-        ordersPage = 1;
-        ordersLastDoc = null;
-        ordersLastDoc = await loadPaginatedData("orders", "ordersCards", perPage, ordersPage, e.target.value, orderSearch.value);
-      });
-      orderSearch.addEventListener("input", debounce(async (e) => {
-        ordersPage = 1;
-        ordersLastDoc = null;
-        ordersLastDoc = await loadPaginatedData("orders", "ordersCards", perPage, ordersPage, document.getElementById("orderSort").value, e.target.value);
-      }, 300));
-
-      // Initial Loads
-      loadPaginatedData("products", "productsCards", perPage, productsPage, "name_asc").then(doc => productsLastDoc = doc);
-      loadPaginatedData("orders", "ordersCards", perPage, ordersPage, "orderId_asc").then(doc => ordersLastDoc = doc);
     }
 
-    // Load Products Alias (for compatibility)
-    function loadProducts() {}
-    function loadOrders() {}
+    // Search Functionality
+    function setupSearch() {
+      productSearch.addEventListener("input", debounce((e) => loadProducts(e.target.value), 300));
+      orderSearch.addEventListener("input", debounce((e) => loadOrders(e.target.value), 300));
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
 
     // Product and Order Management
     function setupModalListeners() {
@@ -576,23 +482,15 @@
         const name = document.getElementById("addName").value;
         const price = parseFloat(document.getElementById("addPrice").value);
         const description = document.getElementById("addDesc").value;
-        const imageFile = document.getElementById("addImage").files[0];
-
+        const imageUrl = document.getElementById("addImage").value;
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
-        if (!imageFile) {
-          alert("Please select an image.");
-          return;
-        }
-
         showLoader();
         try {
-          const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-          await uploadBytes(storageRef, imageFile);
-          const imageUrl = await getDownloadURL(storageRef);
-          const productData = { name, price, description, imageUrl };
+          const productData = { name, price, description };
+          if (imageUrl) productData.imageUrl = imageUrl; // Use URL for now; replace with upload later
           await addDoc(collection(db, "products"), productData);
           closeModal(addProductModal);
           showNotification("Product added successfully!");
@@ -608,21 +506,15 @@
         const name = document.getElementById("editName").value;
         const price = parseFloat(document.getElementById("editPrice").value);
         const description = document.getElementById("editDesc").value;
-        const imageFile = document.getElementById("editImage").files[0];
-
+        const imageUrl = document.getElementById("editImage").value;
         if (price <= 0) {
           alert("Price must be positive.");
           return;
         }
-
         showLoader();
         try {
           const productData = { name, price, description };
-          if (imageFile) {
-            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-            await uploadBytes(storageRef, imageFile);
-            productData.imageUrl = await getDownloadURL(storageRef);
-          }
+          if (imageUrl) productData.imageUrl = imageUrl;
           await updateDoc(doc(db, "products", id), productData);
           closeModal(editProductModal);
           showNotification("Product updated successfully!");
@@ -650,19 +542,20 @@
 
     function setupCardListeners() {
       document.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
+        btn.addEventListener("click", (e) => {
           const id = e.target.getAttribute("data-id");
           const productRef = doc(db, "products", id);
           showLoader();
-          const docSnap = await getDocs(productRef);
-          const product = docSnap.data();
-          document.getElementById("editId").value = id;
-          document.getElementById("editName").value = product.name;
-          document.getElementById("editPrice").value = product.price;
-          document.getElementById("editDesc").value = product.description || "";
-          document.getElementById("editImage").value = "";
-          openModal(editProductModal);
-          hideLoader();
+          getDoc(productRef).then(docSnap => {
+            const product = docSnap.data();
+            document.getElementById("editId").value = id;
+            document.getElementById("editName").value = product.name;
+            document.getElementById("editPrice").value = product.price;
+            document.getElementById("editDesc").value = product.description || "";
+            document.getElementById("editImage").value = product.imageUrl || "";
+            openModal(editProductModal);
+            hideLoader();
+          });
         });
       });
 
@@ -735,8 +628,61 @@
       });
     }
 
-    // Search Functionality Alias (handled in setupPaginationAndSorting)
-    function setupSearch() {}
+    // Pagination and Sorting (Placeholder for simplicity)
+    function loadPaginatedData(collectionName, containerId, perPage = 5, page = 1) {
+      showLoader();
+      const startAt = (page - 1) * perPage;
+      onSnapshot(collection(db, collectionName), (snap) => {
+        const data = [];
+        snap.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+        const paginatedData = data.slice(startAt, startAt + perPage);
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        paginatedData.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          if (collectionName === "products") {
+            card.innerHTML = `
+              <h4>${item.name}</h4>
+              <p><strong>Price:</strong> ${item.price.toFixed(2)} PKR</p>
+              <p><strong>Description:</strong> ${item.description || "N/A"}</p>
+              ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width: 100%; border-radius: 4px; margin: 0.5rem 0;">` : ""}
+              <div class="actions">
+                <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
+                <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
+              </div>
+            `;
+          } else {
+            card.innerHTML = `
+              <h4>Order #${item.orderId || item.id}</h4>
+              <p><strong>Customer:</strong> ${item.customerEmail || "Unknown"}</p>
+              <p><strong>Amount:</strong> ${item.amount.toFixed(2)} PKR</p>
+              <p><strong>Status:</strong> ${item.status || "Pending"}</p>
+              <div class="actions">
+                <button class="action-btn" data-id="${item.id}" data-status="${item.status || "Pending"}">Update Status</button>
+              </div>
+            `;
+          }
+          container.appendChild(card);
+        });
+        setupCardListeners();
+        hideLoader();
+      });
+    }
+
+    // Initialize with Pagination (Simple implementation)
+    loadPaginatedData("products", "productsCards");
+    loadPaginatedData("orders", "ordersCards");
+
+    // User Roles (Placeholder for custom claims)
+    // Replace email check with:
+    /*
+    user.getIdTokenResult().then(idTokenResult => {
+      if (idTokenResult.claims.admin) { ... }
+    });
+    */
   </script>
 </body>
 </html>
+
+
