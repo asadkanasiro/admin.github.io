@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-In Example</title>
+    <!-- Load Google Identity Services library -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <style>
+        .profile-container {
+            display: none;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            max-width: 400px;
+        }
+        #profileImage {
+            max-width: 100px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+        }
+        #signin-button {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Sign-In Button -->
+    <div id="signin-button"></div>
+
+    <!-- Container to display user data -->
+    <div id="profile" class="profile-container">
+        <h2>User Profile</h2>
+        <img id="profileImage" src="" alt="Profile Picture">
+        <p><strong>Name:</strong> <span id="name"></span></p>
+        <p><strong>Email:</strong> <span id="email"></span></p>
+        <button onclick="signOut()">Sign Out</button>
+    </div>
+
+    <script>
+        // Initialize Google Sign-In
+        window.onload = function () {
+            google.accounts.id.initialize({
+                client_id: '1000750911480-sgo7pgdmqr2jhi438kqm5g73t8ceqvvk.apps.googleusercontent.com',
+                callback: handleCredentialResponse,
+                auto_select: false
+            });
+
+            // Render the sign-in button
+            google.accounts.id.renderButton(
+                document.getElementById('signin-button'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'sign_in_with'
+                }
+            );
+
+            // Prompt for auto sign-in if previously signed in
+            google.accounts.id.prompt();
+        };
+
+        // Handle the sign-in response
+        function handleCredentialResponse(response) {
+            try {
+                // Decode the JWT token
+                const responsePayload = parseJwt(response.credential);
+
+                // Get user data
+                const name = responsePayload.name;
+                const email = responsePayload.email;
+                const imageUrl = responsePayload.picture;
+
+                // Display user data
+                document.getElementById('profile').style.display = 'block';
+                document.getElementById('name').textContent = name;
+                document.getElementById('email').textContent = email;
+                document.getElementById('profileImage').src = imageUrl;
+                
+                // Hide sign-in button
+                document.getElementById('signin-button').style.display = 'none';
+            } catch (error) {
+                console.error('Error processing sign-in:', error);
+                alert('An error occurred during sign-in. Check the console for details.');
+            }
+        }
+
+        // Helper function to decode JWT token
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // Sign out function
+        function signOut() {
+            google.accounts.id.disableAutoSelect();
+            // Reset display
+            document.getElementById('profile').style.display = 'none';
+            document.getElementById('signin-button').style.display = 'block';
+            document.getElementById('name').textContent = '';
+            document.getElementById('email').textContent = '';
+            document.getElementById('profileImage').src = '';
+            // Re-render the button
+            google.accounts.id.renderButton(
+                document.getElementById('signin-button'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'sign_in_with'
+                }
+            );
+        }
+    </script>
+</body>
+</html>
